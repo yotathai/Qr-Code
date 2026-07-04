@@ -220,7 +220,7 @@ async function fetchSavedLogos() {
     gallery.classList.remove('hidden');
     
     try {
-        const q = query(collection(db, "user_logos"), where("uid", "==", currentUser.uid), orderBy("createdAt", "desc"));
+        const q = query(collection(db, "user_logos"), where("uid", "==", currentUser.uid));
         const querySnapshot = await getDocs(q);
         
         gallery.innerHTML = '';
@@ -229,8 +229,18 @@ async function fetchSavedLogos() {
             return;
         }
         
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+        let docsArray = [];
+        querySnapshot.forEach(doc => docsArray.push({id: doc.id, data: doc.data()}));
+        
+        // Sort descending by createdAt in memory to avoid needing Firestore composite index
+        docsArray.sort((a, b) => {
+            const t1 = a.data.createdAt ? a.data.createdAt.toMillis() : 0;
+            const t2 = b.data.createdAt ? b.data.createdAt.toMillis() : 0;
+            return t2 - t1;
+        });
+        
+        docsArray.forEach((item) => {
+            const data = item.data;
             const wrapper = document.createElement('div');
             wrapper.className = 'logo-thumbnail-wrapper';
             
@@ -247,7 +257,7 @@ async function fetchSavedLogos() {
             delBtn.textContent = '✕';
             delBtn.onclick = (e) => {
                 e.stopPropagation();
-                deleteSavedLogo(doc.id, data.dataUrl);
+                deleteSavedLogo(item.id, data.dataUrl);
             };
             
             wrapper.appendChild(img);
@@ -256,7 +266,8 @@ async function fetchSavedLogos() {
         });
     } catch (err) {
         console.error("Error fetching logos:", err);
-        gallery.innerHTML = '<span style="font-size: 0.8rem; color: #ef4444;">โหลดข้อมูลล้มเหลว</span>';
+        // Fail gracefully without showing an ugly error to the user
+        gallery.classList.add('hidden');
     }
 }
 
