@@ -197,7 +197,7 @@ h1, h2, h3 {
 
 .banner-text {
     font-size: 0.95rem;
-    color: #991b1b;
+    color: var(--text-main);
 }
 
 /* Dashboard Card */
