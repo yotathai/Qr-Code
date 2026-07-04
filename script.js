@@ -613,7 +613,9 @@ function downloadMobileFriendly(dataUrl, filename) {
             const link = document.createElement('a');
             link.download = filename;
             link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         }
     } catch (err) {
         console.error("Download Error:", err);
@@ -624,7 +626,9 @@ function downloadMobileFriendly(dataUrl, filename) {
             const link = document.createElement('a');
             link.download = filename;
             link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         }
     }
 }
