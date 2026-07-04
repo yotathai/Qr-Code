@@ -20,6 +20,15 @@ const provider = new GoogleAuthProvider();
 let currentUser = null;
 let currentMode = 'both'; // 'both', 'shortlink', 'qrcode'
 
+function generateRandomString(length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 // DOM Elements
 const authLoader = document.getElementById('authLoader');
 const loginSection = document.getElementById('loginSection');
@@ -112,6 +121,10 @@ onAuthStateChanged(auth, (user) => {
         qrLogoInput.disabled = false;
         generateBtn.disabled = false;
         
+        if (!customAliasInput.value) {
+            customAliasInput.value = generateRandomString(6);
+        }
+        
         historySection.classList.remove('hidden');
         loadHistory();
     } else {
@@ -186,12 +199,25 @@ generateBtn.addEventListener('click', async () => {
     try {
         if (currentMode === 'shortlink' || currentMode === 'both') {
             if (!aliasToUse) {
-                aliasToUse = Math.random().toString(36).substring(2, 8);
+                aliasToUse = generateRandomString(6);
+            } else {
+                if (aliasToUse.length < 4) {
+                    alert("ชื่อลิงก์ต้องมีความยาวอย่างน้อย 4 ตัวอักษร");
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = "สร้างลิงก์และ QR Code";
+                    return;
+                }
+                if (!/^[a-zA-Z0-9-]+$/.test(aliasToUse)) {
+                    alert("ชื่อลิงก์สามารถใช้ได้แค่ตัวอักษรภาษาอังกฤษ ตัวเลข และขีดกลาง (-) เท่านั้นครับ");
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = "สร้างลิงก์และ QR Code";
+                    return;
+                }
             }
             
             // Check alias availability
-            if (customAlias) {
-                const q = query(collection(db, "shortlinks"), where("alias", "==", customAlias));
+            if (aliasToUse) {
+                const q = query(collection(db, "shortlinks"), where("alias", "==", aliasToUse));
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
                     alert("ชื่อลิงก์นี้ถูกใช้งานแล้ว กรุณาเปลี่ยนใหม่");
@@ -225,7 +251,7 @@ generateBtn.addEventListener('click', async () => {
         loadHistory();
         
         longUrlInput.value = '';
-        customAliasInput.value = '';
+        customAliasInput.value = generateRandomString(6);
         qrLogoInput.value = '';
         logoPreviewContainer.classList.add('hidden');
         logoPreview.src = '';
