@@ -149,45 +149,52 @@ document.addEventListener('DOMContentLoaded', () => {
             correctLevel : QRCode.CorrectLevel.H
         });
         
-        // Scale it down via CSS for display, but keep actual size large for downloading
-        setTimeout(() => {
+        // qrcode.js draws asynchronously, so we must wait for it to finish (img.src to be populated)
+        let checkCount = 0;
+        const drawLogoInterval = setInterval(() => {
             const canvas = qrcodeDisplay.querySelector('canvas');
             const img = qrcodeDisplay.querySelector('img');
-
-            if (canvas && uploadedLogo) {
-                const ctx = canvas.getContext('2d');
-                const centerImage = new Image();
-                centerImage.onload = function() {
-                    const canvasWidth = canvas.width;
-                    const canvasHeight = canvas.height;
-                    
-                    // Logo size (25% of QR code)
-                    const logoSize = canvasWidth * 0.25;
-                    const x = (canvasWidth - logoSize) / 2;
-                    const y = (canvasHeight - logoSize) / 2;
-                    
-                    // Draw a white background for the logo
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
-                    
-                    // Draw the uploaded logo
-                    ctx.drawImage(centerImage, x, y, logoSize, logoSize);
-                    
-                    // Update the <img> tag created by qrcode.js
-                    if (img) {
+            
+            checkCount++;
+            
+            // Check if qrcode.js has finished (it sets img.src when done)
+            if (canvas && img && img.src) {
+                clearInterval(drawLogoInterval);
+                
+                if (uploadedLogo) {
+                    const ctx = canvas.getContext('2d');
+                    const centerImage = new Image();
+                    centerImage.onload = function() {
+                        const canvasWidth = canvas.width;
+                        const canvasHeight = canvas.height;
+                        
+                        // Logo size (25% of QR code)
+                        const logoSize = canvasWidth * 0.25;
+                        const x = (canvasWidth - logoSize) / 2;
+                        const y = (canvasHeight - logoSize) / 2;
+                        
+                        // Draw a white background for the logo
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
+                        
+                        // Draw the uploaded logo
+                        ctx.drawImage(centerImage, x, y, logoSize, logoSize);
+                        
+                        // Update the <img> tag so it displays correctly on mobile
                         img.src = canvas.toDataURL("image/png");
-                    }
-                };
-                centerImage.src = uploadedLogo;
-            }
-
-            if (img) {
-                 img.style.maxWidth = '100%';
-                 img.style.height = 'auto';
-            }
-            if (canvas) {
-                 canvas.style.maxWidth = '100%';
-                 canvas.style.height = 'auto';
+                    };
+                    centerImage.src = uploadedLogo;
+                }
+                
+                // Fix CSS for proper display
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                canvas.style.maxWidth = '100%';
+                canvas.style.height = 'auto';
+                
+            } else if (checkCount > 50) { // Timeout after 2.5 seconds (50 * 50ms)
+                clearInterval(drawLogoInterval);
+                console.error("QR Code generation timed out");
             }
         }, 50);
     }
