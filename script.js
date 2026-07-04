@@ -587,8 +587,10 @@ function showIOSModal(dataUrl) {
 
 function downloadMobileFriendly(dataUrl, filename) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     try {
-        if (navigator.share) {
+        if (isMobile && navigator.share) {
             const file = dataURItoFile(dataUrl, filename);
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 // Must be called synchronously after user click
