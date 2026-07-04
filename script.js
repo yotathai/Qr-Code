@@ -180,6 +180,13 @@ enableCustomAlias.addEventListener('change', (e) => {
     }
 });
 
+// Clear result when input is empty
+longUrlInput.addEventListener('input', (e) => {
+    if (e.target.value.trim() === '') {
+        resultContainer.classList.add('hidden');
+    }
+});
+
 // Login / Logout
 loginBtn.addEventListener('click', () => {
     signInWithPopup(auth, provider).catch(error => {
