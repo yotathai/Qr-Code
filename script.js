@@ -1,3 +1,24 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBxIILMfoC1y8CgizrJN8yLMF40bwoRLxM",
+  authDomain: "yotathai-board.firebaseapp.com",
+  projectId: "yotathai-board",
+  storageBucket: "yotathai-board.firebasestorage.app",
+  messagingSenderId: "449833456981",
+  appId: "1:449833456981:web:2119c88538012b3ac34bdc",
+  measurementId: "G-27579LSV3Q"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+let currentUser = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelectorAll('.tab-btn');
     const barcodeFormatContainer = document.getElementById('barcodeFormatContainer');
@@ -249,91 +270,150 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadLink.click();
     });
 
-    // --- History System (Local Storage) ---
+    // --- History System (Firebase Firestore) ---
     const historyList = document.getElementById('historyList');
-    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     const historySection = document.getElementById('historySection');
+    const loginPrompt = document.getElementById('loginPrompt');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userInfo = document.getElementById('userInfo');
+    const userName = document.getElementById('userName');
+    const userPhoto = document.getElementById('userPhoto');
 
-    // Initial Load
-    loadHistory();
+    // Always show history section now since it contains the login prompt
+    if (historySection) historySection.classList.remove('hidden');
 
-    function saveHistory(text, mode, color) {
-        let history = JSON.parse(localStorage.getItem('qrHistory') || '[]');
-        
-        // Remove exact duplicates from previous positions to move to top
-        history = history.filter(item => item.text !== text || item.mode !== mode);
-        
-        history.unshift({
-            text: text,
-            mode: mode,
-            color: color,
-            timestamp: Date.now()
-        });
-
-        // Keep only last 10 items to save space
-        if (history.length > 10) history.pop();
-        
-        localStorage.setItem('qrHistory', JSON.stringify(history));
-        loadHistory();
-    }
-
-    function loadHistory() {
-        let history = JSON.parse(localStorage.getItem('qrHistory') || '[]');
-        
-        if (history.length === 0) {
-            if (historySection) historySection.classList.add('hidden');
-            return;
+    // Auth State Observer
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+            // User is signed in
+            loginBtn.classList.add('hidden');
+            loginPrompt.classList.add('hidden');
+            userInfo.classList.remove('hidden');
+            historyList.classList.remove('hidden');
+            
+            userName.textContent = user.displayName || user.email;
+            if (user.photoURL) userPhoto.src = user.photoURL;
+            
+            loadHistory();
+        } else {
+            // User is signed out
+            loginBtn.classList.remove('hidden');
+            loginPrompt.classList.remove('hidden');
+            userInfo.classList.add('hidden');
+            historyList.classList.add('hidden');
+            historyList.innerHTML = '';
         }
-        
-        if (historySection) historySection.classList.remove('hidden');
-        if (historyList) historyList.innerHTML = '';
-        
-        history.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            
-            const icon = item.mode === 'qrcode' ? '🔳' : '|||';
-            const date = new Date(item.timestamp).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' });
-            
-            div.innerHTML = `
-                <div class="history-icon">${icon}</div>
-                <div class="history-details">
-                    <div class="history-text" title="${item.text}">${item.text}</div>
-                    <div class="history-date">${item.mode === 'qrcode' ? 'QR Code' : 'Barcode'} • ${date}</div>
-                </div>
-                <button class="restore-btn" style="background-color: ${item.color}">โหลดข้อมูล</button>
-            `;
-            
-            div.querySelector('.restore-btn').addEventListener('click', () => {
-                // Restore text
-                inputData.value = item.text;
-                
-                // Switch tab
-                const targetTab = Array.from(tabs).find(t => t.dataset.target === item.mode);
-                if (targetTab) targetTab.click();
-                
-                // Select color
-                const targetColor = Array.from(colorSwatches).find(c => c.dataset.color === item.color);
-                if (targetColor) {
-                    colorSwatches.forEach(s => s.classList.remove('active'));
-                    targetColor.classList.add('active');
-                    currentColor = item.color;
-                }
-                
-                // Generate
-                generateBtn.click();
-            });
-            
-            historyList.appendChild(div);
-        });
-    }
+    });
 
-    if (clearHistoryBtn) {
-        clearHistoryBtn.addEventListener('click', () => {
-            if(confirm('ต้องการล้างประวัติการสร้างทั้งหมดใช่หรือไม่?')) {
-                localStorage.removeItem('qrHistory');
-                loadHistory();
+    // Login
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Login failed", error);
+                alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
             }
         });
+    }
+
+    // Logout
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Logout failed", error);
+            }
+        });
+    }
+
+    async function saveHistory(text, mode, color) {
+        // Fallback to local storage if not logged in? No, user explicitly wants sync.
+        // We only save if logged in.
+        if (!currentUser) return;
+        
+        try {
+            await addDoc(collection(db, "qr_history"), {
+                uid: currentUser.uid,
+                text: text,
+                mode: mode,
+                color: color,
+                timestamp: Date.now()
+            });
+            // Reload to show the new item
+            loadHistory();
+        } catch (error) {
+            console.error("Error saving history: ", error);
+        }
+    }
+
+    async function loadHistory() {
+        if (!currentUser || !historyList) return;
+        
+        try {
+            historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#6b7280;">กำลังโหลดข้อมูล...</div>';
+            
+            const q = query(
+                collection(db, "qr_history"),
+                where("uid", "==", currentUser.uid),
+                orderBy("timestamp", "desc"),
+                limit(15)
+            );
+            
+            const querySnapshot = await getDocs(q);
+            historyList.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#6b7280;">ยังไม่มีประวัติการสร้าง</div>';
+                return;
+            }
+            
+            querySnapshot.forEach((doc) => {
+                const item = doc.data();
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                const icon = item.mode === 'qrcode' ? '🔳' : '|||';
+                const date = new Date(item.timestamp).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                
+                div.innerHTML = `
+                    <div class="history-icon">${icon}</div>
+                    <div class="history-details">
+                        <div class="history-text" title="${item.text}">${item.text}</div>
+                        <div class="history-date">${item.mode === 'qrcode' ? 'QR Code' : 'Barcode'} • ${date}</div>
+                    </div>
+                    <button class="restore-btn" style="background-color: ${item.color}">โหลดข้อมูล</button>
+                `;
+                
+                div.querySelector('.restore-btn').addEventListener('click', () => {
+                    // Restore text
+                    inputData.value = item.text;
+                    
+                    // Switch tab
+                    const targetTab = Array.from(tabs).find(t => t.dataset.target === item.mode);
+                    if (targetTab) targetTab.click();
+                    
+                    // Select color
+                    const targetColor = Array.from(colorSwatches).find(c => c.dataset.color === item.color);
+                    if (targetColor) {
+                        colorSwatches.forEach(s => s.classList.remove('active'));
+                        targetColor.classList.add('active');
+                        currentColor = item.color;
+                    }
+                    
+                    // Generate
+                    generateBtn.click();
+                });
+                
+                historyList.appendChild(div);
+            });
+            
+        } catch (error) {
+            console.error("Error loading history: ", error);
+            historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#ef4444;">ไม่สามารถโหลดข้อมูลได้ (อาจติดเรื่องสิทธิ์การเข้าถึงฐานข้อมูล)</div>';
+        }
     }
 });
