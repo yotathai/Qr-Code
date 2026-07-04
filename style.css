@@ -443,18 +443,20 @@ input[type="color"] {
 }
 
 .shortlink-text {
-    font-size: 1.2rem;
-    color: #38bdf8;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
     text-decoration: none;
     word-break: break-all;
     padding: 15px;
-    background: rgba(56, 189, 248, 0.1);
+    background: rgba(249, 115, 22, 0.1);
+    border: 2px dashed var(--primary);
     border-radius: 8px;
-    transition: background 0.3s;
+    transition: all 0.3s;
 }
 
 .shortlink-text:hover {
-    background: rgba(56, 189, 248, 0.2);
+    background: rgba(249, 115, 22, 0.2);
 }
 
 .btn-copy, .btn-download {
