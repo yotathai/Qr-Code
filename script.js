@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -238,55 +238,42 @@ generateBtn.addEventListener('click', async () => {
     generateBtn.textContent = "กำลังประมวลผล...";
     
     try {
-        if (currentMode === 'shortlink' || currentMode === 'both') {
-            if (!aliasToUse) {
-                aliasToUse = generateRandomString(6);
-            } else {
-                if (aliasToUse.length < 4) {
-                    alert("ชื่อลิงก์ต้องมีความยาวอย่างน้อย 4 ตัวอักษร");
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = "สร้างลิงก์และ QR Code";
-                    return;
-                }
-                if (!/^[a-zA-Z0-9-]+$/.test(aliasToUse)) {
-                    alert("ชื่อลิงก์สามารถใช้ได้แค่ตัวอักษรภาษาอังกฤษ ตัวเลข และขีดกลาง (-) เท่านั้นครับ");
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = "สร้างลิงก์และ QR Code";
-                    return;
-                }
-            }
-            
-            // Check alias availability
-            if (aliasToUse) {
-                const q = query(collection(db, "shortlinks"), where("alias", "==", aliasToUse));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    alert("ชื่อลิงก์นี้ถูกใช้งานแล้ว กรุณาเปลี่ยนใหม่");
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = "สร้างลิงก์และ QR Code";
-                    return;
-                }
-            }
-            
-            // Save to Firestore
-            await addDoc(collection(db, "shortlinks"), {
-                uid: currentUser.uid,
-                originalUrl: longUrl,
-                alias: aliasToUse,
-                mode: currentMode,
-                clicks: 0,
-                createdAt: new Date()
-            });
+        if (!aliasToUse) {
+            aliasToUse = generateRandomString(6);
         } else {
-            // QR Code Only - save history but no shortlink alias
-            await addDoc(collection(db, "shortlinks"), {
-                uid: currentUser.uid,
-                originalUrl: longUrl,
-                mode: 'qrcode',
-                clicks: 0,
-                createdAt: new Date()
-            });
+            if (aliasToUse.length < 4) {
+                alert("ชื่อลิงก์ต้องมีความยาวอย่างน้อย 4 ตัวอักษร");
+                generateBtn.disabled = false;
+                generateBtn.textContent = "สร้างลิงก์และ QR Code";
+                return;
+            }
+            if (!/^[a-zA-Z0-9-]+$/.test(aliasToUse)) {
+                alert("ชื่อลิงก์สามารถใช้ได้แค่ตัวอักษรภาษาอังกฤษ ตัวเลข และขีดกลาง (-) เท่านั้นครับ");
+                generateBtn.disabled = false;
+                generateBtn.textContent = "สร้างลิงก์และ QR Code";
+                return;
+            }
         }
+        
+        // Check alias availability
+        const q = query(collection(db, "shortlinks"), where("alias", "==", aliasToUse));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            alert("ชื่อลิงก์นี้ถูกใช้งานแล้ว กรุณาเปลี่ยนใหม่");
+            generateBtn.disabled = false;
+            generateBtn.textContent = "สร้างลิงก์และ QR Code";
+            return;
+        }
+        
+        // Save to Firestore (Always save alias so QR code is clean and trackable)
+        await addDoc(collection(db, "shortlinks"), {
+            uid: currentUser.uid,
+            originalUrl: longUrl,
+            alias: aliasToUse,
+            mode: currentMode,
+            clicks: 0,
+            createdAt: new Date()
+        });
         
         showResult(longUrl, aliasToUse);
         loadHistory();
@@ -330,8 +317,8 @@ async function showResult(longUrl, alias) {
     if (currentMode === 'qrcode' || currentMode === 'both') {
         qrResult.classList.remove('hidden');
         
-        // If 'both', QR points to shortlink. If 'qrcode', points directly to longUrl.
-        const urlToEncode = (currentMode === 'both') ? window.location.origin + '/' + alias : longUrl;
+        // ALWAYS point QR to shortlink so that it's clean and never messy!
+        const urlToEncode = window.location.origin + '/' + alias;
         
         const colorDark = qrColorInput.value;
         const colorLight = qrBgColorInput.value;
@@ -345,7 +332,7 @@ async function showResult(longUrl, alias) {
 
 async function generateQR(url, darkColor, lightColor, logoFile) {
     const opts = {
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: logoFile ? 'H' : 'M',
         margin: 2,
         width: 300,
         color: {
@@ -414,7 +401,7 @@ async function loadHistory() {
         }
         
         let docs = [];
-        snapshot.forEach(doc => docs.push(doc.data()));
+        snapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
         
         // Sort descending by createdAt
         docs.sort((a, b) => {
@@ -427,10 +414,21 @@ async function loadHistory() {
         docs = docs.slice(0, 20);
         
         // Make download function globally available for inline onclick
+        window.deleteHistory = async function(id) {
+            if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบประวัตินี้?")) return;
+            try {
+                await deleteDoc(doc(db, "shortlinks", id));
+                loadHistory();
+            } catch (err) {
+                console.error("Delete Error:", err);
+                alert("ไม่สามารถลบได้: " + err.message);
+            }
+        };
+        
         window.downloadHistoryQR = async function(urlToEncode) {
             try {
                 const opts = {
-                    errorCorrectionLevel: 'H',
+                    errorCorrectionLevel: 'M',
                     margin: 2,
                     width: 300,
                     color: { dark: '#000000', light: '#ffffff' }
@@ -459,30 +457,31 @@ async function loadHistory() {
             
             let badgeClass = 'badge-both';
             let modeText = 'ลิงก์ + QR';
-            let targetUrl = data.originalUrl;
+            let targetUrl = data.alias ? (window.location.origin + '/' + data.alias) : data.originalUrl;
             
             if (data.mode === 'shortlink') { 
                 badgeClass = 'badge-shortlink'; 
                 modeText = 'ลิงก์'; 
-                targetUrl = window.location.origin + '/' + data.alias;
             } else if (data.mode === 'qrcode') { 
                 badgeClass = 'badge-qrcode'; 
                 modeText = 'QR'; 
-                targetUrl = data.originalUrl;
-            } else {
-                targetUrl = window.location.origin + '/' + data.alias;
             }
             
             tr.innerHTML = `
                 <td>${shortlinkHtml}</td>
-                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${data.originalUrl}">${data.originalUrl}</td>
+                <td style="word-break: break-all; font-size: 0.85rem;" title="${data.originalUrl}">${data.originalUrl}</td>
                 <td><span class="badge ${badgeClass}">${modeText}</span></td>
                 <td>${data.clicks || 0}</td>
                 <td>${date}</td>
                 <td>
-                    <button onclick="downloadHistoryQR('${targetUrl}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
-                        โหลด QR
-                    </button>
+                    <div style="display: flex; gap: 4px; justify-content: flex-start; align-items: center;">
+                        <button onclick="downloadHistoryQR('${targetUrl}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+                            QR
+                        </button>
+                        <button onclick="deleteHistory('${data.id}')" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+                            ลบ
+                        </button>
+                    </div>
                 </td>
             `;
             historyList.appendChild(tr);
