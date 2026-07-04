@@ -3,13 +3,13 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChang
 import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBxIILMfoC1y8CgizrJN8yLMF40bwoRLxM",
-  authDomain: "yotathai-board.firebaseapp.com",
-  projectId: "yotathai-board",
-  storageBucket: "yotathai-board.firebasestorage.app",
-  messagingSenderId: "449833456981",
-  appId: "1:449833456981:web:2119c88538012b3ac34bdc",
-  measurementId: "G-27579LSV3Q"
+  apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
+  authDomain: "th-go-link.firebaseapp.com",
+  projectId: "th-go-link",
+  storageBucket: "th-go-link.firebasestorage.app",
+  messagingSenderId: "816629073092",
+  appId: "1:816629073092:web:6111f00bd629a2a0d9f591",
+  measurementId: "G-3TXWT1LVLF"
 };
 
 const app = initializeApp(firebaseConfig);
