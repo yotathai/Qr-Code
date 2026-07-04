@@ -19,6 +19,7 @@ const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 let currentMode = 'shortlink'; // 'both', 'shortlink', 'qrcode'
+let selectedLogoDataUrl = null;
 
 function generateRandomString(length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -113,8 +114,19 @@ modeBtns.forEach(btn => {
             qrOptionsPanel.classList.remove('hidden');
             aliasGroup.classList.remove('hidden');
         }
+        updateGenerateBtnText();
     });
 });
+
+function updateGenerateBtnText() {
+    if (currentMode === 'shortlink') {
+        generateBtn.textContent = "สร้างลิงก์สั้น";
+    } else if (currentMode === 'qrcode') {
+        generateBtn.textContent = "สร้าง QR Code";
+    } else {
+        generateBtn.textContent = "สร้างทั้งลิงก์และ QR Code";
+    }
+}
 
 // Auth State Observer
 onAuthStateChanged(auth, (user) => {
@@ -146,6 +158,7 @@ onAuthStateChanged(auth, (user) => {
         
         historySection.classList.remove('hidden');
         loadHistory();
+        fetchSavedLogos();
     } else {
         currentUser = null;
         loginSection.classList.remove('hidden');
@@ -199,23 +212,152 @@ logoutBtn.addEventListener('click', () => {
     signOut(auth);
 });
 
-// Logo Preview Logic
+// Logo Gallery Logic
+async function fetchSavedLogos() {
+    if (!currentUser) return;
+    const gallery = document.getElementById('savedLogosGallery');
+    gallery.innerHTML = '<span style="font-size: 0.8rem; color: #888;">กำลังโหลดโลโก้...</span>';
+    gallery.classList.remove('hidden');
+    
+    try {
+        const q = query(collection(db, "user_logos"), where("uid", "==", currentUser.uid), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        gallery.innerHTML = '';
+        if (querySnapshot.empty) {
+            gallery.classList.add('hidden');
+            return;
+        }
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const wrapper = document.createElement('div');
+            wrapper.className = 'logo-thumbnail-wrapper';
+            
+            const img = document.createElement('img');
+            img.src = data.dataUrl;
+            img.className = 'logo-thumbnail';
+            if (selectedLogoDataUrl === data.dataUrl) {
+                img.classList.add('selected');
+            }
+            img.onclick = () => selectSavedLogo(data.dataUrl, img);
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'logo-delete-btn';
+            delBtn.textContent = '✕';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteSavedLogo(doc.id, data.dataUrl);
+            };
+            
+            wrapper.appendChild(img);
+            wrapper.appendChild(delBtn);
+            gallery.appendChild(wrapper);
+        });
+    } catch (err) {
+        console.error("Error fetching logos:", err);
+        gallery.innerHTML = '<span style="font-size: 0.8rem; color: #ef4444;">โหลดข้อมูลล้มเหลว</span>';
+    }
+}
+
+function selectSavedLogo(dataUrl, imgElement) {
+    selectedLogoDataUrl = dataUrl;
+    
+    // Update UI
+    document.querySelectorAll('.logo-thumbnail').forEach(el => el.classList.remove('selected'));
+    if (imgElement) imgElement.classList.add('selected');
+    
+    logoPreview.src = dataUrl;
+    logoPreviewContainer.classList.remove('hidden');
+    qrLogoInput.value = ''; // clear file input
+}
+
+async function deleteSavedLogo(docId, dataUrl) {
+    if (!confirm("คุณต้องการลบโลโก้นี้ใช่หรือไม่?")) return;
+    
+    try {
+        await deleteDoc(doc(db, "user_logos", docId));
+        if (selectedLogoDataUrl === dataUrl) {
+            removeLogoSelection();
+        }
+        fetchSavedLogos();
+    } catch (err) {
+        console.error("Error deleting logo:", err);
+        alert("ลบโลโก้ไม่สำเร็จ");
+    }
+}
+
+function removeLogoSelection() {
+    selectedLogoDataUrl = null;
+    qrLogoInput.value = ''; 
+    logoPreviewContainer.classList.add('hidden');
+    logoPreview.src = '';
+    document.querySelectorAll('.logo-thumbnail').forEach(el => el.classList.remove('selected'));
+}
+
 qrLogoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
-        logoPreview.src = URL.createObjectURL(file);
-        logoPreviewContainer.classList.remove('hidden');
+        if (file.size > 2 * 1024 * 1024) {
+            alert("ไฟล์รูปภาพต้องมีขนาดไม่เกิน 2MB");
+            qrLogoInput.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = async () => {
+                const canvas = document.createElement('canvas');
+                const MAX_SIZE = 150;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const dataUrl = canvas.toDataURL('image/png');
+                selectSavedLogo(dataUrl, null);
+                
+                // Save to Firestore
+                if (currentUser) {
+                    try {
+                        await addDoc(collection(db, "user_logos"), {
+                            uid: currentUser.uid,
+                            dataUrl: dataUrl,
+                            createdAt: new Date()
+                        });
+                        fetchSavedLogos();
+                    } catch (err) {
+                        console.error("Error saving logo:", err);
+                    }
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
     } else {
-        logoPreviewContainer.classList.add('hidden');
-        logoPreview.src = '';
+        removeLogoSelection();
     }
 });
 
 removeLogoBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    qrLogoInput.value = ''; 
-    logoPreviewContainer.classList.add('hidden');
-    logoPreview.src = '';
+    removeLogoSelection();
 });
 
 // Generate Button Click
@@ -244,13 +386,13 @@ generateBtn.addEventListener('click', async () => {
             if (aliasToUse.length < 4) {
                 alert("ชื่อลิงก์ต้องมีความยาวอย่างน้อย 4 ตัวอักษร");
                 generateBtn.disabled = false;
-                generateBtn.textContent = "สร้างลิงก์และ QR Code";
+                updateGenerateBtnText();
                 return;
             }
             if (!/^[a-zA-Z0-9-]+$/.test(aliasToUse)) {
                 alert("ชื่อลิงก์สามารถใช้ได้แค่ตัวอักษรภาษาอังกฤษ ตัวเลข และขีดกลาง (-) เท่านั้นครับ");
                 generateBtn.disabled = false;
-                generateBtn.textContent = "สร้างลิงก์และ QR Code";
+                updateGenerateBtnText();
                 return;
             }
         }
@@ -259,9 +401,9 @@ generateBtn.addEventListener('click', async () => {
         const q = query(collection(db, "shortlinks"), where("alias", "==", aliasToUse));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-            alert("ชื่อลิงก์นี้ถูกใช้งานแล้ว กรุณาเปลี่ยนใหม่");
+            alert("ชื่อลิงก์นี้มีคนใช้แล้ว กรุณาเปลี่ยนชื่อใหม่ครับ");
             generateBtn.disabled = false;
-            generateBtn.textContent = "สร้างลิงก์และ QR Code";
+            updateGenerateBtnText();
             return;
         }
         
@@ -291,12 +433,12 @@ generateBtn.addEventListener('click', async () => {
         logoPreview.src = '';
         
     } catch (error) {
-        console.error("Generate Error:", error);
-        alert("เกิดข้อผิดพลาด: " + error.message);
+        console.error("Error adding document: ", error);
+        alert("เกิดข้อผิดพลาดในการสร้างลิงก์");
+    } finally {
+        generateBtn.disabled = false;
+        updateGenerateBtnText();
     }
-    
-    generateBtn.disabled = false;
-    generateBtn.textContent = "สร้างลิงก์และ QR Code";
 });
 
 // Show Result and Generate QR
@@ -322,17 +464,17 @@ async function showResult(longUrl, alias) {
         
         const colorDark = qrColorInput.value;
         const colorLight = qrBgColorInput.value;
-        const logoFile = qrLogoInput.files[0];
+        const logoDataUrl = selectedLogoDataUrl;
         
-        await generateQR(urlToEncode, colorDark, colorLight, logoFile);
+        await generateQR(urlToEncode, colorDark, colorLight, logoDataUrl);
     } else {
         qrResult.classList.add('hidden');
     }
 }
 
-async function generateQR(url, darkColor, lightColor, logoFile) {
+async function generateQR(url, darkColor, lightColor, logoDataUrl) {
     const opts = {
-        errorCorrectionLevel: logoFile ? 'H' : 'M',
+        errorCorrectionLevel: logoDataUrl ? 'H' : 'M',
         margin: 2,
         width: 300,
         color: {
@@ -344,7 +486,7 @@ async function generateQR(url, darkColor, lightColor, logoFile) {
     try {
         await QRCode.toCanvas(qrCanvas, url, opts);
         
-        if (logoFile) {
+        if (logoDataUrl) {
             const ctx = qrCanvas.getContext('2d');
             const img = new Image();
             img.onload = () => {
@@ -357,7 +499,7 @@ async function generateQR(url, darkColor, lightColor, logoFile) {
                 
                 ctx.drawImage(img, center, center, logoSize, logoSize);
             };
-            img.src = URL.createObjectURL(logoFile);
+            img.src = logoDataUrl;
         }
     } catch (err) {
         console.error("QR Error:", err);
@@ -493,6 +635,12 @@ async function loadHistory() {
         
     } catch (error) {
         console.error("Load History Error:", error);
-        historyList.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">โหลดประวัติล้มเหลว</td></tr>';
+        historyList.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-light); padding: 20px;">กรุณาเข้าสู่ระบบเพื่อดูประวัติ</td></tr>';
+        
+        document.getElementById('savedLogosGallery').innerHTML = '';
+        document.getElementById('savedLogosGallery').classList.add('hidden');
+        selectedLogoDataUrl = null;
+        logoPreviewContainer.classList.add('hidden');
+        qrLogoInput.value = '';
     }
 }
