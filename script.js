@@ -28,27 +28,20 @@ const userName = document.getElementById('userName');
 const userAvatar = document.getElementById('userAvatar');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
-const themeColorInput = document.getElementById('themeColor');
 
-// Theme Color Logic
-themeColorInput.addEventListener('input', (e) => {
-    const color = e.target.value;
-    document.documentElement.style.setProperty('--primary', color);
-    document.documentElement.style.setProperty('--primary-dark', color);
-    document.documentElement.style.setProperty('--primary-light', color);
-    
-    // Save to localStorage
-    localStorage.setItem('themeColor', color);
+const themeBtns = document.querySelectorAll('.theme-circle');
+themeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('selectedTheme', theme);
+    });
 });
 
-// Load saved theme
-const savedTheme = localStorage.getItem('themeColor');
-if (savedTheme) {
-    themeColorInput.value = savedTheme;
-    document.documentElement.style.setProperty('--primary', savedTheme);
-    document.documentElement.style.setProperty('--primary-dark', savedTheme);
-    document.documentElement.style.setProperty('--primary-light', savedTheme);
-}
+// Load saved theme (default to light-orange)
+const savedTheme = localStorage.getItem('selectedTheme') || 'light-orange';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
 
 const authRequiredBanner = document.getElementById('authRequiredBanner');
 const longUrlInput = document.getElementById('longUrl');

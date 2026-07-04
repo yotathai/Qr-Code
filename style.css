@@ -1,16 +1,41 @@
+
 :root {
     --primary: #f97316;
     --primary-dark: #ea580c;
     --primary-light: #fdba74;
-    --bg-color: #0f172a;
-    --card-bg: rgba(30, 41, 59, 0.7);
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --bg-color: #fff7ed;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: rgba(0, 0, 0, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
     --glass-blur: blur(12px);
     --nav-height: 70px;
 }
+
+[data-theme="light-orange"] { --primary: #f97316; --primary-dark: #ea580c; --bg-color: #fff7ed; --card-bg: rgba(255,255,255,0.9); --text-main: #0f172a; --text-muted: #64748b; --border: rgba(0,0,0,0.1); --input-bg: rgba(0,0,0,0.05); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.1); }
+[data-theme="light-blue"] { --primary: #0ea5e9; --primary-dark: #0284c7; --bg-color: #f0f9ff; --card-bg: rgba(255,255,255,0.9); --text-main: #0f172a; --text-muted: #64748b; --border: rgba(0,0,0,0.1); --input-bg: rgba(0,0,0,0.05); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.1); }
+[data-theme="light-green"] { --primary: #10b981; --primary-dark: #059669; --bg-color: #ecfdf5; --card-bg: rgba(255,255,255,0.9); --text-main: #0f172a; --text-muted: #64748b; --border: rgba(0,0,0,0.1); --input-bg: rgba(0,0,0,0.05); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.1); }
+[data-theme="light-purple"] { --primary: #8b5cf6; --primary-dark: #7c3aed; --bg-color: #f5f3ff; --card-bg: rgba(255,255,255,0.9); --text-main: #0f172a; --text-muted: #64748b; --border: rgba(0,0,0,0.1); --input-bg: rgba(0,0,0,0.05); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.1); }
+
+[data-theme="dark-orange"] { --primary: #f97316; --primary-dark: #ea580c; --bg-color: #0f172a; --card-bg: rgba(30,41,59,0.8); --text-main: #f8fafc; --text-muted: #94a3b8; --border: rgba(255,255,255,0.1); --input-bg: rgba(0,0,0,0.2); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.37); }
+[data-theme="dark-blue"] { --primary: #38bdf8; --primary-dark: #0ea5e9; --bg-color: #0f172a; --card-bg: rgba(30,41,59,0.8); --text-main: #f8fafc; --text-muted: #94a3b8; --border: rgba(255,255,255,0.1); --input-bg: rgba(0,0,0,0.2); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.37); }
+[data-theme="dark-green"] { --primary: #34d399; --primary-dark: #10b981; --bg-color: #0f172a; --card-bg: rgba(30,41,59,0.8); --text-main: #f8fafc; --text-muted: #94a3b8; --border: rgba(255,255,255,0.1); --input-bg: rgba(0,0,0,0.2); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.37); }
+[data-theme="dark-purple"] { --primary: #a78bfa; --primary-dark: #8b5cf6; --bg-color: #0f172a; --card-bg: rgba(30,41,59,0.8); --text-main: #f8fafc; --text-muted: #94a3b8; --border: rgba(255,255,255,0.1); --input-bg: rgba(0,0,0,0.2); --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.37); }
+
+.theme-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.theme-circle:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
 
 * {
     box-sizing: border-box;
@@ -39,7 +64,7 @@ h1, h2, h3 {
     left: 0;
     width: 100%;
     height: var(--nav-height);
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--card-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border-bottom: 1px solid var(--border);
@@ -178,7 +203,7 @@ h1, h2, h3 {
 /* Segmented Controls */
 .mode-selector {
     display: flex;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--input-bg);
     border-radius: 12px;
     padding: 5px;
     margin-bottom: 30px;
@@ -202,7 +227,7 @@ h1, h2, h3 {
 
 .mode-btn.active {
     background: var(--primary);
-    color: white;
+    color: var(--text-main);
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
 
@@ -220,10 +245,10 @@ input[type="url"],
 input[type="text"] {
     width: 100%;
     padding: 18px 24px;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    color: white;
+    color: var(--text-main);
     font-size: 1.1rem;
     font-family: inherit;
     transition: all 0.3s ease;
@@ -244,7 +269,7 @@ input:disabled {
 .alias-wrapper {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
@@ -275,7 +300,7 @@ input:disabled {
 
 /* QR Options Panel */
 .qr-options-panel {
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--input-bg);
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 30px;
@@ -337,7 +362,7 @@ input[type="color"] {
     width: 100%;
     padding: 18px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
+    color: var(--text-main);
     border: none;
     border-radius: 12px;
     font-size: 1.2rem;
@@ -359,7 +384,7 @@ input[type="color"] {
 
 /* Result Section */
 .result-card {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+    background: var(--card-bg);
     border: 1px solid var(--primary-light);
     border-radius: 24px;
     padding: 40px;
@@ -387,7 +412,7 @@ input[type="color"] {
 }
 
 .result-item {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--input-bg);
     padding: 24px;
     border-radius: 16px;
     text-align: center;
