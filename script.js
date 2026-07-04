@@ -28,6 +28,27 @@ const userName = document.getElementById('userName');
 const userAvatar = document.getElementById('userAvatar');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const themeColorInput = document.getElementById('themeColor');
+
+// Theme Color Logic
+themeColorInput.addEventListener('input', (e) => {
+    const color = e.target.value;
+    document.documentElement.style.setProperty('--primary', color);
+    document.documentElement.style.setProperty('--primary-dark', color);
+    document.documentElement.style.setProperty('--primary-light', color);
+    
+    // Save to localStorage
+    localStorage.setItem('themeColor', color);
+});
+
+// Load saved theme
+const savedTheme = localStorage.getItem('themeColor');
+if (savedTheme) {
+    themeColorInput.value = savedTheme;
+    document.documentElement.style.setProperty('--primary', savedTheme);
+    document.documentElement.style.setProperty('--primary-dark', savedTheme);
+    document.documentElement.style.setProperty('--primary-light', savedTheme);
+}
 
 const authRequiredBanner = document.getElementById('authRequiredBanner');
 const longUrlInput = document.getElementById('longUrl');
