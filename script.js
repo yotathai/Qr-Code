@@ -18,42 +18,70 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 let currentUser = null;
+const DOMAIN = "th-go.link";
 
 document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelectorAll('.tab-btn');
-    const barcodeFormatContainer = document.getElementById('barcodeFormatContainer');
     const inputData = document.getElementById('inputData');
     const generateBtn = document.getElementById('generateBtn');
+    const generateBtnText = document.getElementById('generateBtnText');
     const outputSection = document.getElementById('outputSection');
-    const qrcodeDisplay = document.getElementById('qrcodeDisplay');
-    const barcodeDisplay = document.getElementById('barcodeDisplay');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const barcodeFormat = document.getElementById('barcodeFormat');
-    const colorSwatches = document.querySelectorAll('.color-swatch');
     
-    // Logo Upload Elements
-    const logoUploadContainer = document.getElementById('logoUploadContainer');
+    // Output Containers
+    const shortlinkOutputContainer = document.getElementById('shortlinkOutputContainer');
+    const qrcodeOutputContainer = document.getElementById('qrcodeOutputContainer');
+    const shortlinkDisplay = document.getElementById('shortlinkDisplay');
+    const qrcodeDisplay = document.getElementById('qrcodeDisplay');
+    
+    // Options
+    const qrOptionsContainer = document.getElementById('qrOptionsContainer');
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const colorSwatches = document.querySelectorAll('.color-swatch');
+    const loginWarning = document.getElementById('loginWarning');
+    
+    // Logo Upload
     const logoInput = document.getElementById('logoInput');
     const logoFileName = document.getElementById('logoFileName');
     const removeLogoBtn = document.getElementById('removeLogoBtn');
 
-    let currentMode = 'qrcode'; // 'qrcode' or 'barcode'
-    let currentColor = '#f97316'; // Default Orange
+    let currentMode = 'shortlink'; // 'shortlink', 'qrcode', 'both'
+    let currentColor = '#f97316';
     let qrCodeInstance = null;
     let uploadedLogo = null;
+    let currentRenderUrl = '';
+
+    // Tab Switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentMode = tab.dataset.target;
+            
+            outputSection.classList.add('hidden'); // Hide output when switching modes
+
+            if (currentMode === 'shortlink') {
+                qrOptionsContainer.classList.add('hidden');
+                generateBtnText.textContent = 'สร้างลิงก์ย่อ';
+            } else if (currentMode === 'qrcode') {
+                qrOptionsContainer.classList.remove('hidden');
+                generateBtnText.textContent = 'สร้าง QR Code';
+            } else if (currentMode === 'both') {
+                qrOptionsContainer.classList.remove('hidden');
+                generateBtnText.textContent = 'สร้างลิงก์ย่อ & QR Code';
+            }
+        });
+    });
 
     // Color Selection
     colorSwatches.forEach(swatch => {
         swatch.addEventListener('click', () => {
-            // Update Active Class
             colorSwatches.forEach(s => s.classList.remove('active'));
             swatch.classList.add('active');
-            
             currentColor = swatch.dataset.color;
             
-            // Auto regenerate if there's text
-            if (inputData.value.trim()) {
-                generateBtn.click();
+            if (currentRenderUrl && (currentMode === 'qrcode' || currentMode === 'both')) {
+                renderQRCode(currentRenderUrl);
             }
         });
     });
@@ -67,9 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = new FileReader();
             reader.onload = function(event) {
                 uploadedLogo = event.target.result;
-                // Auto regenerate if text exists
-                if (inputData.value.trim()) {
-                    generateBtn.click();
+                if (currentRenderUrl && (currentMode === 'qrcode' || currentMode === 'both')) {
+                    renderQRCode(currentRenderUrl);
                 }
             };
             reader.readAsDataURL(file);
@@ -81,67 +108,124 @@ document.addEventListener('DOMContentLoaded', () => {
         logoFileName.textContent = 'เลือกไฟล์รูปภาพ (ไม่บังคับ)';
         removeLogoBtn.classList.add('hidden');
         uploadedLogo = null;
-        if (inputData.value.trim()) {
-            generateBtn.click();
+        if (currentRenderUrl && (currentMode === 'qrcode' || currentMode === 'both')) {
+            renderQRCode(currentRenderUrl);
         }
     });
 
-    // Tab Switching
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Update Active Class
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+    function generateShortCode() {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
 
-            currentMode = tab.dataset.target;
-
-            // Toggle Barcode format options and Logo upload
-            if (currentMode === 'barcode') {
-                barcodeFormatContainer.classList.remove('hidden');
-                logoUploadContainer.classList.add('hidden');
-                inputData.placeholder = "รหัสบาร์โค้ด เช่น 123456789";
-            } else {
-                barcodeFormatContainer.classList.add('hidden');
-                logoUploadContainer.classList.remove('hidden');
-                inputData.placeholder = "ตัวอย่าง: https://www.google.com หรือ รหัสพัสดุ 123456789";
-            }
-            
-            // Hide output when switching modes
-            outputSection.classList.add('hidden');
-        });
-    });
-
-    // Generate Code
-    generateBtn.addEventListener('click', () => {
+    // Generate Button Click
+    generateBtn.addEventListener('click', async () => {
         const text = inputData.value.trim();
-        if (!text) {
-            alert('กรุณากรอกข้อมูลก่อนสร้างรหัส');
+        
+        if (!currentUser) {
+            alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+            loginWarning.classList.remove('hidden');
             return;
         }
 
-        // Save to History
-        saveHistory(text, currentMode, currentColor);
+        if (!text) {
+            alert('กรุณาวางลิงก์ปลายทาง');
+            return;
+        }
 
-        outputSection.classList.remove('hidden');
+        if (!text.startsWith('http://') && !text.startsWith('https://')) {
+            alert('ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://');
+            return;
+        }
 
-        if (currentMode === 'qrcode') {
-            generateQRCode(text);
-        } else {
-            generateBarcode(text);
+        generateBtn.disabled = true;
+        const originalBtnText = generateBtnText.textContent;
+        generateBtnText.textContent = 'กำลังประมวลผล...';
+
+        try {
+            let shortCode = '';
+            let shortlinkUrl = '';
+
+            if (currentMode === 'shortlink' || currentMode === 'both') {
+                shortCode = generateShortCode();
+                shortlinkUrl = `https://${DOMAIN}/${shortCode}`;
+            }
+
+            // Save to Firestore
+            await addDoc(collection(db, "shortlinks"), {
+                uid: currentUser.uid,
+                original_url: text,
+                short_code: shortCode, // empty if qrcode only
+                mode: currentMode,
+                color: (currentMode !== 'shortlink') ? currentColor : null,
+                clicks: 0,
+                timestamp: Date.now()
+            });
+
+            // Handle UI based on Mode
+            outputSection.classList.remove('hidden');
+
+            if (currentMode === 'shortlink') {
+                shortlinkOutputContainer.classList.remove('hidden');
+                qrcodeOutputContainer.classList.add('hidden');
+                
+                currentRenderUrl = shortlinkUrl;
+                shortlinkDisplay.textContent = `${DOMAIN}/${shortCode}`;
+                shortlinkDisplay.href = shortlinkUrl;
+                
+            } else if (currentMode === 'qrcode') {
+                shortlinkOutputContainer.classList.add('hidden');
+                qrcodeOutputContainer.classList.remove('hidden');
+                
+                currentRenderUrl = text; // QR points to original url
+                renderQRCode(currentRenderUrl);
+                
+            } else if (currentMode === 'both') {
+                shortlinkOutputContainer.classList.remove('hidden');
+                qrcodeOutputContainer.classList.remove('hidden');
+                
+                currentRenderUrl = shortlinkUrl; // QR points to shortlink
+                shortlinkDisplay.textContent = `${DOMAIN}/${shortCode}`;
+                shortlinkDisplay.href = shortlinkUrl;
+                renderQRCode(currentRenderUrl);
+            }
+
+            loadHistory();
+
+        } catch (error) {
+            console.error("Error creating item: ", error);
+            alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+        } finally {
+            generateBtn.disabled = false;
+            generateBtnText.textContent = originalBtnText;
         }
     });
 
-    function generateQRCode(text) {
-        qrcodeDisplay.classList.remove('hidden');
-        barcodeDisplay.classList.add('hidden');
-        
-        // Clear previous
+    copyBtn.addEventListener('click', () => {
+        if (currentRenderUrl && currentMode !== 'qrcode') {
+            navigator.clipboard.writeText(currentRenderUrl).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'คัดลอกแล้ว!';
+                copyBtn.style.backgroundColor = '#dcfce7';
+                copyBtn.style.color = '#166534';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.backgroundColor = '#e2e8f0';
+                    copyBtn.style.color = 'inherit';
+                }, 2000);
+            });
+        }
+    });
+
+    function renderQRCode(url) {
         qrcodeDisplay.innerHTML = '';
         
-        // Create new QR Code. Use high resolution (e.g. 512x512)
-        // Note: qrcode.js draws to a canvas and an img tag
         qrCodeInstance = new QRCode(qrcodeDisplay, {
-            text: text,
+            text: url,
             width: 512,
             height: 512,
             colorDark : currentColor,
@@ -149,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
             correctLevel : QRCode.CorrectLevel.H
         });
         
-        // qrcode.js draws asynchronously, so we must wait for it to finish (img.src to be populated)
         let checkCount = 0;
         const drawLogoInterval = setInterval(() => {
             const canvas = qrcodeDisplay.querySelector('canvas');
@@ -157,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             checkCount++;
             
-            // Check if qrcode.js has finished (it sets img.src when done)
             if (canvas && img && img.src) {
                 clearInterval(drawLogoInterval);
                 
@@ -165,94 +247,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ctx = canvas.getContext('2d');
                     const centerImage = new Image();
                     centerImage.onload = function() {
-                        const canvasWidth = canvas.width;
-                        const canvasHeight = canvas.height;
+                        const logoSize = canvas.width * 0.25;
+                        const x = (canvas.width - logoSize) / 2;
+                        const y = (canvas.height - logoSize) / 2;
                         
-                        // Logo size (25% of QR code)
-                        const logoSize = canvasWidth * 0.25;
-                        const x = (canvasWidth - logoSize) / 2;
-                        const y = (canvasHeight - logoSize) / 2;
-                        
-                        // Draw a white background for the logo
                         ctx.fillStyle = "#ffffff";
                         ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
-                        
-                        // Draw the uploaded logo
                         ctx.drawImage(centerImage, x, y, logoSize, logoSize);
                         
-                        // Update the <img> tag so it displays correctly on mobile
                         img.src = canvas.toDataURL("image/png");
                     };
                     centerImage.src = uploadedLogo;
                 }
                 
-                // Fix CSS for proper display
                 img.style.maxWidth = '100%';
                 img.style.height = 'auto';
                 canvas.style.maxWidth = '100%';
                 canvas.style.height = 'auto';
                 
-            } else if (checkCount > 50) { // Timeout after 2.5 seconds (50 * 50ms)
+            } else if (checkCount > 50) {
                 clearInterval(drawLogoInterval);
-                console.error("QR Code generation timed out");
             }
         }, 50);
     }
 
-    function generateBarcode(text) {
-        barcodeDisplay.classList.remove('hidden');
-        qrcodeDisplay.classList.add('hidden');
-
-        const format = barcodeFormat.value;
-        
-        try {
-            JsBarcode("#barcodeDisplay", text, {
-                format: format,
-                width: 4,      // Thicker bars for high res
-                height: 150,   // Taller bars
-                displayValue: true,
-                fontSize: 24,
-                margin: 20,
-                lineColor: currentColor
-            });
-            // Ensure it fits container visually
-            barcodeDisplay.style.maxWidth = '100%';
-            barcodeDisplay.style.height = 'auto';
-        } catch (error) {
-            alert('รูปแบบข้อมูลไม่ถูกต้องสำหรับฟอร์แมต ' + format + '\n\n' + error.message);
-            outputSection.classList.add('hidden');
-        }
-    }
-
     // Download Image
     downloadBtn.addEventListener('click', async () => {
-        let filename = currentMode === 'qrcode' ? `qrcode_${Date.now()}.png` : `barcode_${Date.now()}.png`;
+        let filename = `qrcode_thgo_${Date.now()}.png`;
         let dataUrl = "";
 
-        // Extract DataURL based on mode
-        if (currentMode === 'qrcode') {
-            const canvas = qrcodeDisplay.querySelector('canvas');
-            const img = qrcodeDisplay.querySelector('img');
-            if (canvas && canvas.style.display !== 'none') {
-                 dataUrl = canvas.toDataURL("image/png");
-            } else if (img && img.src) {
-                 dataUrl = img.src;
-            }
-        } else {
-            if (barcodeDisplay) {
-                dataUrl = barcodeDisplay.toDataURL("image/png");
-            }
+        const canvas = qrcodeDisplay.querySelector('canvas');
+        const img = qrcodeDisplay.querySelector('img');
+        if (canvas && canvas.style.display !== 'none') {
+             dataUrl = canvas.toDataURL("image/png");
+        } else if (img && img.src) {
+             dataUrl = img.src;
         }
 
         if (!dataUrl) {
-            alert('ไม่สามารถดาวน์โหลดภาพได้ ลองสร้างใหม่อีกครั้ง');
+            alert('ไม่สามารถดาวน์โหลดภาพได้');
             return;
         }
 
-        // Try Native Share API first (Mobile iOS/Android) to save to Photos directly
         if (navigator.share) {
             try {
-                // Convert DataURL to File object
                 const res = await fetch(dataUrl);
                 const blob = await res.blob();
                 const file = new File([blob], filename, { type: 'image/png' });
@@ -260,26 +298,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
-                        title: 'Yotathai QR/Barcode',
+                        title: 'th-go.link QR Code',
                     });
-                    return; // Success!
+                    return;
                 }
             } catch (error) {
-                console.log('Share API error or cancelled:', error);
-                // Fallback to normal download if share fails
+                console.log('Share API error:', error);
             }
         }
 
-        // Fallback for Desktop (PC/Mac) or browsers without Share API
         let downloadLink = document.createElement('a');
         downloadLink.download = filename;
         downloadLink.href = dataUrl;
         downloadLink.click();
     });
 
-    // --- History System (Firebase Firestore) ---
+    // --- History System ---
     const historyList = document.getElementById('historyList');
-    const historySection = document.getElementById('historySection');
     const loginPrompt = document.getElementById('loginPrompt');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -287,16 +322,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const userName = document.getElementById('userName');
     const userPhoto = document.getElementById('userPhoto');
 
-    // Always show history section now since it contains the login prompt
-    if (historySection) historySection.classList.remove('hidden');
-
-    // Auth State Observer
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         if (user) {
-            // User is signed in
             loginBtn.classList.add('hidden');
             loginPrompt.classList.add('hidden');
+            loginWarning.classList.add('hidden');
             userInfo.classList.remove('hidden');
             historyList.classList.remove('hidden');
             
@@ -305,7 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             loadHistory();
         } else {
-            // User is signed out
             loginBtn.classList.remove('hidden');
             loginPrompt.classList.remove('hidden');
             userInfo.classList.add('hidden');
@@ -314,47 +344,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Login
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
             try {
                 await signInWithPopup(auth, provider);
             } catch (error) {
                 console.error("Login failed", error);
-                alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
             }
         });
     }
 
-    // Logout
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
+                outputSection.classList.add('hidden');
+                inputData.value = '';
             } catch (error) {
                 console.error("Logout failed", error);
             }
         });
-    }
-
-    async function saveHistory(text, mode, color) {
-        // Fallback to local storage if not logged in? No, user explicitly wants sync.
-        // We only save if logged in.
-        if (!currentUser) return;
-        
-        try {
-            await addDoc(collection(db, "qr_history"), {
-                uid: currentUser.uid,
-                text: text,
-                mode: mode,
-                color: color,
-                timestamp: Date.now()
-            });
-            // Reload to show the new item
-            loadHistory();
-        } catch (error) {
-            console.error("Error saving history: ", error);
-        }
     }
 
     async function loadHistory() {
@@ -364,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
             historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#6b7280;">กำลังโหลดข้อมูล...</div>';
             
             const q = query(
-                collection(db, "qr_history"),
+                collection(db, "shortlinks"),
                 where("uid", "==", currentUser.uid),
                 orderBy("timestamp", "desc"),
                 limit(15)
@@ -374,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             historyList.innerHTML = '';
             
             if (querySnapshot.empty) {
-                historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#6b7280;">ยังไม่มีประวัติการสร้าง</div>';
+                historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#6b7280;">คุณยังไม่มีประวัติการสร้าง</div>';
                 return;
             }
             
@@ -382,37 +391,90 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = doc.data();
                 const div = document.createElement('div');
                 div.className = 'history-item';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
                 
-                const icon = item.mode === 'qrcode' ? '🔳' : '|||';
                 const date = new Date(item.timestamp).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' });
                 
+                let iconStr = '🔗';
+                let modeName = 'ลิงก์ย่อ';
+                if (item.mode === 'qrcode') { iconStr = '🔳'; modeName = 'QR Code'; }
+                if (item.mode === 'both') { iconStr = '🌟'; modeName = 'ลิงก์+QR'; }
+
+                let mainLinkHtml = '';
+                if (item.mode === 'qrcode') {
+                    // QR Code Only - show original URL
+                    mainLinkHtml = `<a href="${item.original_url}" target="_blank" style="font-weight: 600; color: #1f2937; text-decoration: none; word-break: break-all; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${item.original_url}</a>`;
+                } else {
+                    // Has shortlink
+                    const fullShortUrl = `https://${DOMAIN}/${item.short_code}`;
+                    mainLinkHtml = `<a href="${fullShortUrl}" target="_blank" style="font-weight: 600; color: #166534; text-decoration: none;">${DOMAIN}/${item.short_code}</a>`;
+                }
+                
+                const statsHtml = (item.mode !== 'qrcode') ? `👁️ ${item.clicks || 0} คลิก • ` : '';
+
                 div.innerHTML = `
-                    <div class="history-icon">${icon}</div>
-                    <div class="history-details">
-                        <div class="history-text" title="${item.text}">${item.text}</div>
-                        <div class="history-date">${item.mode === 'qrcode' ? 'QR Code' : 'Barcode'} • ${date}</div>
+                    <div class="history-details" style="flex: 1; overflow: hidden; padding-right: 10px;">
+                        <div style="font-size: 0.8em; color: #4b5563; margin-bottom: 2px;">${iconStr} ${modeName}</div>
+                        ${mainLinkHtml}
+                        ${item.mode !== 'qrcode' ? `<div class="history-text" style="font-size: 0.8em; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.original_url}">${item.original_url}</div>` : ''}
+                        <div class="history-date" style="font-size: 0.75em; color: #9ca3af; margin-top: 2px;">${statsHtml}${date}</div>
                     </div>
-                    <button class="restore-btn" style="background-color: ${item.color}">โหลดข้อมูล</button>
+                    <button class="restore-btn" style="background-color: ${item.color || '#3b82f6'}; padding: 5px 10px; font-size: 0.8em; white-space: nowrap;">เรียกดู</button>
                 `;
                 
                 div.querySelector('.restore-btn').addEventListener('click', () => {
-                    // Restore text
-                    inputData.value = item.text;
+                    inputData.value = item.original_url;
                     
-                    // Switch tab
-                    const targetTab = Array.from(tabs).find(t => t.dataset.target === item.mode);
+                    // Switch to correct tab
+                    const targetTab = Array.from(tabs).find(t => t.dataset.target === (item.mode || 'shortlink'));
                     if (targetTab) targetTab.click();
-                    
-                    // Select color
-                    const targetColor = Array.from(colorSwatches).find(c => c.dataset.color === item.color);
-                    if (targetColor) {
-                        colorSwatches.forEach(s => s.classList.remove('active'));
-                        targetColor.classList.add('active');
-                        currentColor = item.color;
+
+                    outputSection.classList.remove('hidden');
+
+                    if (item.mode === 'shortlink') {
+                        shortlinkOutputContainer.classList.remove('hidden');
+                        qrcodeOutputContainer.classList.add('hidden');
+                        
+                        const fullShortUrl = `https://${DOMAIN}/${item.short_code}`;
+                        currentRenderUrl = fullShortUrl;
+                        shortlinkDisplay.textContent = `${DOMAIN}/${item.short_code}`;
+                        shortlinkDisplay.href = fullShortUrl;
+                    } 
+                    else if (item.mode === 'qrcode') {
+                        shortlinkOutputContainer.classList.add('hidden');
+                        qrcodeOutputContainer.classList.remove('hidden');
+                        
+                        currentRenderUrl = item.original_url;
+                        
+                        const targetColor = Array.from(colorSwatches).find(c => c.dataset.color === item.color);
+                        if (targetColor) {
+                            colorSwatches.forEach(s => s.classList.remove('active'));
+                            targetColor.classList.add('active');
+                            currentColor = item.color;
+                        }
+                        renderQRCode(currentRenderUrl);
                     }
-                    
-                    // Generate
-                    generateBtn.click();
+                    else { // both
+                        shortlinkOutputContainer.classList.remove('hidden');
+                        qrcodeOutputContainer.classList.remove('hidden');
+                        
+                        const fullShortUrl = `https://${DOMAIN}/${item.short_code}`;
+                        currentRenderUrl = fullShortUrl;
+                        shortlinkDisplay.textContent = `${DOMAIN}/${item.short_code}`;
+                        shortlinkDisplay.href = fullShortUrl;
+                        
+                        const targetColor = Array.from(colorSwatches).find(c => c.dataset.color === item.color);
+                        if (targetColor) {
+                            colorSwatches.forEach(s => s.classList.remove('active'));
+                            targetColor.classList.add('active');
+                            currentColor = item.color;
+                        }
+                        renderQRCode(currentRenderUrl);
+                    }
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
                 
                 historyList.appendChild(div);
@@ -420,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error("Error loading history: ", error);
-            historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#ef4444;">ไม่สามารถโหลดข้อมูลได้ (อาจติดเรื่องสิทธิ์การเข้าถึงฐานข้อมูล)</div>';
+            historyList.innerHTML = '<div style="text-align:center; padding:1rem; color:#ef4444;">ไม่สามารถโหลดข้อมูลได้</div>';
         }
     }
 });

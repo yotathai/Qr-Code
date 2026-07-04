@@ -3,99 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iT - ระบบสร้าง QR Code & Barcode</title>
+    <title>th-go.link - ระบบย่อลิงก์ & สร้าง QR Code ฟรี</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- JsBarcode Library -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <div class="logo-container">
-                <img src="ช้างโลโก้logo-yotathai.PNG" alt="Yotathai Logo" class="main-logo">
-            </div>
-            <h2>iT</h2>
-            <p class="subtitle">ปลอดภัย 100% • ประมวลผลบนเครื่องของคุณ • ไม่มีโฆษณา</p>
+            <h2>th-go.link</h2>
+            <p class="subtitle">ระบบย่อลิงก์ & สร้าง QR Code ระดับสากล ฟรี 100%</p>
         </header>
 
         <main class="main-card">
-            <div class="tabs">
-                <button class="tab-btn active" data-target="qrcode">QR Code</button>
-                <button class="tab-btn" data-target="barcode">Barcode</button>
+            <!-- Login Warning -->
+            <div id="loginWarning" class="hidden" style="background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9em; text-align: center;">
+                กรุณาเข้าสู่ระบบก่อนสร้างลิงก์ เพื่อป้องกันสแปมและบันทึกประวัติ
+            </div>
+
+            <!-- Mode Tabs -->
+            <div class="tabs" style="margin-bottom: 20px;">
+                <button class="tab-btn active" data-target="shortlink">🔗 ย่อลิงก์</button>
+                <button class="tab-btn" data-target="qrcode">🔳 QR Code</button>
+                <button class="tab-btn" data-target="both">🌟 ย่อลิงก์ + QR</button>
             </div>
 
             <div class="input-section">
-                <label for="inputData">กรอกข้อมูลหรือ URL ที่ต้องการ</label>
-                <textarea id="inputData" rows="3" placeholder="ตัวอย่าง: https://www.google.com หรือ รหัสพัสดุ 123456789"></textarea>
+                <label for="inputData">วางลิงก์ปลายทางของคุณที่นี่</label>
+                <textarea id="inputData" rows="2" placeholder="ตัวอย่าง: https://www.google.com/search?q=very+long+url"></textarea>
                 
-                <div id="barcodeFormatContainer" class="hidden">
-                    <label for="barcodeFormat">รูปแบบบาร์โค้ด</label>
-                    <select id="barcodeFormat">
-                        <option value="CODE128">CODE128 (มาตรฐานทั่วไป รองรับตัวอักษรและตัวเลข)</option>
-                        <option value="EAN13">EAN-13 (รหัสสินค้า 13 หลัก)</option>
-                        <option value="UPC">UPC (รหัสสินค้า 12 หลัก)</option>
-                    </select>
-                </div>
-
-                <div class="color-picker-container">
-                    <label>เลือกสีรหัส</label>
-                    <div class="color-swatches" id="colorSwatches">
-                        <!-- Dark Colors -->
-                        <div class="color-swatch active" data-color="#f97316" style="background-color: #f97316;" title="Orange (Default)"></div>
-                        <div class="color-swatch" data-color="#000000" style="background-color: #000000;" title="Black"></div>
-                        <div class="color-swatch" data-color="#dc2626" style="background-color: #dc2626;" title="Red"></div>
-                        <div class="color-swatch" data-color="#16a34a" style="background-color: #16a34a;" title="Green"></div>
-                        <div class="color-swatch" data-color="#2563eb" style="background-color: #2563eb;" title="Blue"></div>
-                        
-                        <!-- Light Colors -->
-                        <div class="color-swatch" data-color="#fbbf24" style="background-color: #fbbf24;" title="Yellow"></div>
-                        <div class="color-swatch" data-color="#34d399" style="background-color: #34d399;" title="Light Green"></div>
-                        <div class="color-swatch" data-color="#60a5fa" style="background-color: #60a5fa;" title="Light Blue"></div>
-                        <div class="color-swatch" data-color="#a78bfa" style="background-color: #a78bfa;" title="Light Purple"></div>
-                        <div class="color-swatch" data-color="#f472b6" style="background-color: #f472b6;" title="Pink"></div>
+                <!-- QR Options Container (Hidden by default since Shortlink mode is default) -->
+                <div id="qrOptionsContainer" class="hidden">
+                    <div class="color-picker-container">
+                        <label>ตกแต่ง QR Code ของคุณ (เลือกสี)</label>
+                        <div class="color-swatches" id="colorSwatches">
+                            <div class="color-swatch active" data-color="#f97316" style="background-color: #f97316;" title="Orange (Default)"></div>
+                            <div class="color-swatch" data-color="#000000" style="background-color: #000000;" title="Black"></div>
+                            <div class="color-swatch" data-color="#dc2626" style="background-color: #dc2626;" title="Red"></div>
+                            <div class="color-swatch" data-color="#16a34a" style="background-color: #16a34a;" title="Green"></div>
+                            <div class="color-swatch" data-color="#2563eb" style="background-color: #2563eb;" title="Blue"></div>
+                            <div class="color-swatch" data-color="#8b5cf6" style="background-color: #8b5cf6;" title="Purple"></div>
+                        </div>
                     </div>
-                </div>
 
-                <div id="logoUploadContainer" class="logo-upload-container">
-                    <label>โลโก้ตรงกลาง (เฉพาะ QR Code)</label>
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="logoInput" accept="image/*" class="file-input">
-                        <label for="logoInput" class="file-input-label">
-                            <span id="logoFileName">เลือกไฟล์รูปภาพ (ไม่บังคับ)</span>
-                        </label>
-                        <button id="removeLogoBtn" class="remove-btn hidden" title="ลบโลโก้">✕</button>
+                    <div id="logoUploadContainer" class="logo-upload-container">
+                        <label>ใส่โลโก้ตรงกลาง QR Code</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="logoInput" accept="image/*" class="file-input">
+                            <label for="logoInput" class="file-input-label">
+                                <span id="logoFileName">เลือกไฟล์รูปภาพ (ไม่บังคับ)</span>
+                            </label>
+                            <button id="removeLogoBtn" class="remove-btn hidden" title="ลบโลโก้">✕</button>
+                        </div>
                     </div>
                 </div>
 
                 <button id="generateBtn" class="generate-btn">
-                    <span>สร้างรูปรหัส</span>
+                    <span id="generateBtnText">สร้างลิงก์ย่อ</span>
                 </button>
             </div>
 
             <div class="output-section hidden" id="outputSection">
-                <div class="output-container">
-                    <!-- QR Code Output -->
-                    <div id="qrcodeDisplay" class="display-area"></div>
-                    <!-- Barcode Output -->
-                    <canvas id="barcodeDisplay" class="display-area hidden"></canvas>
+                <!-- Shortlink Output -->
+                <div id="shortlinkOutputContainer" class="hidden" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <p style="margin: 0; color: #166534; font-size: 0.9em; margin-bottom: 5px;">ลิงก์ย่อของคุณพร้อมใช้งานแล้ว!</p>
+                    <a id="shortlinkDisplay" href="#" target="_blank" style="font-size: 1.2em; font-weight: 600; color: #15803d; text-decoration: none; word-break: break-all;">th-go.link/xyz</a>
+                    <br>
+                    <button id="copyBtn" class="text-btn" style="margin-top: 10px; background-color: #e2e8f0; padding: 5px 15px; border-radius: 5px;">คัดลอกลิงก์</button>
                 </div>
-                
-                <button id="downloadBtn" class="download-btn">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    ดาวน์โหลดรูปภาพ
-                </button>
+
+                <!-- QR Code Output -->
+                <div id="qrcodeOutputContainer" class="hidden">
+                    <div class="output-container">
+                        <div id="qrcodeDisplay" class="display-area"></div>
+                    </div>
+                    <button id="downloadBtn" class="download-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        ดาวน์โหลด QR Code
+                    </button>
+                </div>
             </div>
         </main>
         
         <!-- History Section -->
-        <div class="history-section hidden" id="historySection">
+        <div class="history-section" id="historySection">
             <div class="history-header">
-                <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: middle;"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ประวัติการสร้างล่าสุด</h3>
+                <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: middle;"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ประวัติผลงานของคุณ</h3>
                 
                 <div class="auth-container">
                     <div id="userInfo" class="user-info hidden">
@@ -110,22 +106,14 @@
                 </div>
             </div>
             
-            <!-- Fallback text if not logged in -->
             <div id="loginPrompt" class="login-prompt">
-                <p>เข้าสู่ระบบเพื่อบันทึกและซิงค์ประวัติของคุณข้ามอุปกรณ์</p>
+                <p>เข้าสู่ระบบเพื่อบันทึกประวัติ และดูสถิติการคลิก</p>
             </div>
 
             <div id="historyList" class="history-list hidden">
                 <!-- History items will be injected here -->
             </div>
         </div>
-
-        <footer class="footer">
-            <p>เพื่อความปลอดภัย ข้อมูลของคุณจะไม่ถูกส่งไปยังเซิร์ฟเวอร์ใดๆ</p>
-            <p style="margin-top: 0.5rem; font-size: 0.9em; font-weight: 500;">
-                &copy; 2026 <a href="https://yotathai.com" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: none;">Yotathai.com</a> - All Rights Reserved
-            </p>
-        </footer>
     </div>
     <script type="module" src="script.js"></script>
 </body>
