@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>th-go.link - ย่อลิงก์ สร้าง QR Code สุดล้ำ</title>
     
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f97316">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <!-- SEO & Meta Tags -->
     <meta name="description" content="ระบบย่อลิงก์และสร้างคิวอาร์โค้ด (QR Code) ที่ใช้งานง่ายที่สุดสำหรับคนไทย ปรับแต่งสีสันได้ มีระบบจัดเก็บประวัติการใช้งาน รองรับทุกแพลตฟอร์ม">
     <meta name="keywords" content="ย่อลิงก์, สร้างคิวอาร์โค้ด, th-go.link, url shortener, qr code generator, ลิงก์สั้น">
@@ -217,5 +222,20 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <script type="module" src="script.js?v=5"></script>
+    
+    <!-- Register Service Worker for PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
 </body>
 </html>
