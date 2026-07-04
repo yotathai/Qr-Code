@@ -515,35 +515,104 @@ copyBtn.addEventListener('click', () => {
 });
 
 // Mobile-friendly download helper
-async function downloadMobileFriendly(dataUrl, filename) {
+function dataURItoFile(dataURI, filename) {
+    const arr = dataURI.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type: mime});
+}
+
+function showIOSModal(dataUrl) {
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.85)';
+    overlay.style.zIndex = '9999';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.maxWidth = '80%';
+    img.style.maxHeight = '60%';
+    img.style.borderRadius = '8px';
+    img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+    
+    const text = document.createElement('p');
+    text.textContent = '👆 แตะค้างที่รูปภาพเพื่อ "บันทึกรูปภาพ"';
+    text.style.color = 'white';
+    text.style.marginTop = '20px';
+    text.style.fontFamily = 'Prompt, sans-serif';
+    text.style.fontSize = '1.1rem';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'ปิดหน้าต่าง';
+    closeBtn.style.marginTop = '20px';
+    closeBtn.style.padding = '10px 20px';
+    closeBtn.style.borderRadius = '20px';
+    closeBtn.style.border = 'none';
+    closeBtn.style.backgroundColor = 'var(--primary, #f97316)';
+    closeBtn.style.color = 'white';
+    closeBtn.style.fontFamily = 'Prompt, sans-serif';
+    closeBtn.style.fontSize = '1rem';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => document.body.removeChild(overlay);
+    
+    overlay.appendChild(img);
+    overlay.appendChild(text);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+}
+
+function downloadMobileFriendly(dataUrl, filename) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     try {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        
         if (navigator.share) {
-            const file = new File([blob], filename, { type: 'image/png' });
+            const file = dataURItoFile(dataUrl, filename);
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
+                // Must be called synchronously after user click
+                navigator.share({
                     files: [file],
                     title: 'QR Code',
                     text: 'QR Code จาก th-go.link'
+                }).catch(err => {
+                    console.error("Share failed", err);
+                    if (isIOS) showIOSModal(dataUrl);
                 });
                 return;
             }
         }
         
         // Fallback for desktop and browsers without share support
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
+        if (isIOS) {
+            showIOSModal(dataUrl);
+        } else {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            link.click();
+        }
     } catch (err) {
         console.error("Download Error:", err);
-        // Fallback 2: just try regular download
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
+        if (isIOS) {
+            showIOSModal(dataUrl);
+        } else {
+            // Fallback 2: just try regular download
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            link.click();
+        }
     }
 }
 
@@ -606,7 +675,7 @@ async function loadHistory() {
                     color: { dark: '#000000', light: '#ffffff' }
                 };
                 const dataUrl = await QRCode.toDataURL(urlToEncode, opts);
-                await downloadMobileFriendly(dataUrl, 'qrcode-history.png');
+                downloadMobileFriendly(dataUrl, 'qrcode-history.png');
             } catch (err) {
                 console.error("Download history QR Error:", err);
                 alert("ไม่สามารถดาวน์โหลด QR Code ได้");
