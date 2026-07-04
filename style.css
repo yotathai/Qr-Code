@@ -16,7 +16,7 @@
 }
 
 body {
-    font-family: 'Sarabun', sans-serif;
+    font-family: 'Prompt', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.5;
@@ -83,7 +83,7 @@ body {
     padding: 1rem;
     font-size: 1rem;
     font-weight: 600;
-    font-family: 'Sarabun', sans-serif;
+    font-family: 'Prompt', sans-serif;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -116,7 +116,7 @@ textarea, select {
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    font-family: 'Sarabun', sans-serif;
+    font-family: 'Prompt', sans-serif;
     font-size: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
     margin-bottom: 1.5rem;
@@ -230,7 +230,7 @@ textarea:focus, select:focus {
     padding: 0.875rem;
     font-size: 1.1rem;
     font-weight: 600;
-    font-family: 'Sarabun', sans-serif;
+    font-family: 'Prompt', sans-serif;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
 }
@@ -285,7 +285,7 @@ textarea:focus, select:focus {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     font-weight: 600;
-    font-family: 'Sarabun', sans-serif;
+    font-family: 'Prompt', sans-serif;
     cursor: pointer;
     transition: all 0.2s;
 }
