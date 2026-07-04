@@ -83,6 +83,18 @@ h1, h2, h3 {
     -webkit-text-fill-color: transparent;
 }
 
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.theme-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* Auth Section */
 .nav-auth {
     display: flex;
@@ -559,11 +571,31 @@ input[type="color"] {
 
 @media (max-width: 768px) {
     .navbar {
-        padding: 0 1rem;
+        flex-wrap: wrap;
+        padding: 10px 1rem;
+        height: auto;
+        min-height: var(--nav-height);
+        gap: 10px;
     }
     
     .logo-text {
         font-size: 1.2rem;
+    }
+    
+    .nav-right {
+        display: contents;
+    }
+
+    .nav-auth {
+        order: 2;
+    }
+
+    .theme-picker {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        overflow-x: auto;
+        padding-bottom: 5px;
     }
     
     .theme-selector {
@@ -571,6 +603,10 @@ input[type="color"] {
         flex-wrap: wrap;
         gap: 4px !important;
         justify-content: center;
+    }
+    
+    .btn-login .btn-text {
+        display: none;
     }
 
     .user-profile {
@@ -586,7 +622,7 @@ input[type="color"] {
     }
     
     .main-container {
-        margin-top: calc(var(--nav-height) + 20px);
+        margin-top: 130px; /* Increase margin since navbar is now taller on mobile */
     }
     
     .dashboard-card {
