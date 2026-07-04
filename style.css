@@ -140,9 +140,7 @@ h1, h2, h3 {
     align-items: center;
     justify-content: center;
     text-align: center;
-    background-image: url('banner.jpg');
-    background-size: cover;
-    background-position: center;
+    background: radial-gradient(circle at center, rgba(56, 189, 248, 0.15) 0%, var(--bg-color) 70%);
 }
 
 .hero-overlay {
