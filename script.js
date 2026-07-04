@@ -80,6 +80,19 @@ const downloadQrBtn = document.getElementById('downloadQrBtn');
 
 const historySection = document.getElementById('historySection');
 const historyList = document.getElementById('historyList');
+const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+const historyContentContainer = document.getElementById('historyContentContainer');
+
+if (toggleHistoryBtn && historyContentContainer) {
+    toggleHistoryBtn.addEventListener('click', () => {
+        historyContentContainer.classList.toggle('hidden');
+        if (historyContentContainer.classList.contains('hidden')) {
+            toggleHistoryBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> แสดงประวัติ';
+        } else {
+            toggleHistoryBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg> ซ่อนประวัติ';
+        }
+    });
+}
 
 // Mode Selection
 modeBtns.forEach(btn => {
