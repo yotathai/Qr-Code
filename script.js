@@ -514,12 +514,42 @@ copyBtn.addEventListener('click', () => {
     setTimeout(() => copyBtn.textContent = originalText, 2000);
 });
 
+// Mobile-friendly download helper
+async function downloadMobileFriendly(dataUrl, filename) {
+    try {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        
+        if (navigator.share) {
+            const file = new File([blob], filename, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'QR Code',
+                    text: 'QR Code จาก th-go.link'
+                });
+                return;
+            }
+        }
+        
+        // Fallback for desktop and browsers without share support
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+    } catch (err) {
+        console.error("Download Error:", err);
+        // Fallback 2: just try regular download
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+    }
+}
+
 // Download QR Button
 downloadQrBtn.addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.download = 'qrcode.png';
-    link.href = qrCanvas.toDataURL();
-    link.click();
+    downloadMobileFriendly(qrCanvas.toDataURL(), 'qrcode.png');
 });
 
 // Load History
@@ -576,10 +606,7 @@ async function loadHistory() {
                     color: { dark: '#000000', light: '#ffffff' }
                 };
                 const dataUrl = await QRCode.toDataURL(urlToEncode, opts);
-                const link = document.createElement('a');
-                link.download = 'qrcode-history.png';
-                link.href = dataUrl;
-                link.click();
+                await downloadMobileFriendly(dataUrl, 'qrcode-history.png');
             } catch (err) {
                 console.error("Download history QR Error:", err);
                 alert("ไม่สามารถดาวน์โหลด QR Code ได้");
