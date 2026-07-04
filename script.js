@@ -379,6 +379,26 @@ async function loadHistory() {
         // Take top 20
         docs = docs.slice(0, 20);
         
+        // Make download function globally available for inline onclick
+        window.downloadHistoryQR = async function(urlToEncode) {
+            try {
+                const opts = {
+                    errorCorrectionLevel: 'H',
+                    margin: 2,
+                    width: 300,
+                    color: { dark: '#000000', light: '#ffffff' }
+                };
+                const dataUrl = await QRCode.toDataURL(urlToEncode, opts);
+                const link = document.createElement('a');
+                link.download = 'qrcode-history.png';
+                link.href = dataUrl;
+                link.click();
+            } catch (err) {
+                console.error("Download history QR Error:", err);
+                alert("ไม่สามารถดาวน์โหลด QR Code ได้");
+            }
+        };
+        
         docs.forEach(data => {
             const tr = document.createElement('tr');
             
@@ -392,8 +412,19 @@ async function loadHistory() {
             
             let badgeClass = 'badge-both';
             let modeText = 'ลิงก์ + QR';
-            if (data.mode === 'shortlink') { badgeClass = 'badge-shortlink'; modeText = 'ลิงก์'; }
-            if (data.mode === 'qrcode') { badgeClass = 'badge-qrcode'; modeText = 'QR'; }
+            let targetUrl = data.originalUrl;
+            
+            if (data.mode === 'shortlink') { 
+                badgeClass = 'badge-shortlink'; 
+                modeText = 'ลิงก์'; 
+                targetUrl = window.location.origin + '/' + data.alias;
+            } else if (data.mode === 'qrcode') { 
+                badgeClass = 'badge-qrcode'; 
+                modeText = 'QR'; 
+                targetUrl = data.originalUrl;
+            } else {
+                targetUrl = window.location.origin + '/' + data.alias;
+            }
             
             tr.innerHTML = `
                 <td>${shortlinkHtml}</td>
@@ -401,6 +432,11 @@ async function loadHistory() {
                 <td><span class="badge ${badgeClass}">${modeText}</span></td>
                 <td>${data.clicks || 0}</td>
                 <td>${date}</td>
+                <td>
+                    <button onclick="downloadHistoryQR('${targetUrl}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+                        โหลด QR
+                    </button>
+                </td>
             `;
             historyList.appendChild(tr);
         });
