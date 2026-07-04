@@ -16,10 +16,13 @@
 <body>
     <div class="container">
         <header class="header">
-            <div class="shield-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <div class="logo-container">
+                <div class="shield-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <h1 class="logo-text">Yotathai</h1>
             </div>
-            <h1>ระบบสร้าง QR Code & Barcode</h1>
+            <h2>ระบบสร้าง QR Code & Barcode</h2>
             <p class="subtitle">ปลอดภัย 100% • ประมวลผลบนเครื่องของคุณ • ไม่มีโฆษณา</p>
         </header>
 
@@ -40,6 +43,25 @@
                         <option value="EAN13">EAN-13 (รหัสสินค้า 13 หลัก)</option>
                         <option value="UPC">UPC (รหัสสินค้า 12 หลัก)</option>
                     </select>
+                </div>
+
+                <div class="color-picker-container">
+                    <label>เลือกสีรหัส</label>
+                    <div class="color-swatches" id="colorSwatches">
+                        <!-- Dark Colors -->
+                        <div class="color-swatch active" data-color="#f97316" style="background-color: #f97316;" title="Orange (Default)"></div>
+                        <div class="color-swatch" data-color="#000000" style="background-color: #000000;" title="Black"></div>
+                        <div class="color-swatch" data-color="#dc2626" style="background-color: #dc2626;" title="Red"></div>
+                        <div class="color-swatch" data-color="#16a34a" style="background-color: #16a34a;" title="Green"></div>
+                        <div class="color-swatch" data-color="#2563eb" style="background-color: #2563eb;" title="Blue"></div>
+                        
+                        <!-- Light Colors -->
+                        <div class="color-swatch" data-color="#fbbf24" style="background-color: #fbbf24;" title="Yellow"></div>
+                        <div class="color-swatch" data-color="#34d399" style="background-color: #34d399;" title="Light Green"></div>
+                        <div class="color-swatch" data-color="#60a5fa" style="background-color: #60a5fa;" title="Light Blue"></div>
+                        <div class="color-swatch" data-color="#a78bfa" style="background-color: #a78bfa;" title="Light Purple"></div>
+                        <div class="color-swatch" data-color="#f472b6" style="background-color: #f472b6;" title="Pink"></div>
+                    </div>
                 </div>
 
                 <button id="generateBtn" class="generate-btn">

@@ -8,9 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const barcodeDisplay = document.getElementById('barcodeDisplay');
     const downloadBtn = document.getElementById('downloadBtn');
     const barcodeFormat = document.getElementById('barcodeFormat');
+    const colorSwatches = document.querySelectorAll('.color-swatch');
 
     let currentMode = 'qrcode'; // 'qrcode' or 'barcode'
+    let currentColor = '#f97316'; // Default Orange
     let qrCodeInstance = null;
+
+    // Color Selection
+    colorSwatches.forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            // Update Active Class
+            colorSwatches.forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+            
+            currentColor = swatch.dataset.color;
+            
+            // Auto regenerate if there's text
+            if (inputData.value.trim()) {
+                generateBtn.click();
+            }
+        });
+    });
 
     // Tab Switching
     tabs.forEach(tab => {
@@ -65,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             text: text,
             width: 512,
             height: 512,
-            colorDark : "#000000",
+            colorDark : currentColor,
             colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.H
         });
@@ -98,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 height: 150,   // Taller bars
                 displayValue: true,
                 fontSize: 24,
-                margin: 20
+                margin: 20,
+                lineColor: currentColor
             });
             // Ensure it fits container visually
             barcodeDisplay.style.maxWidth = '100%';
