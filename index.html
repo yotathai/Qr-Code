@@ -74,9 +74,9 @@
         <div class="dashboard-card">
             <!-- Segmented Control for Modes -->
             <div class="mode-selector">
-                <button class="mode-btn active" data-mode="both">ทั้งหมด (ลิงก์ + QR)</button>
-                <button class="mode-btn" data-mode="shortlink">ลิงก์อย่างเดียว</button>
-                <button class="mode-btn" data-mode="qrcode">QR อย่างเดียว</button>
+                <button class="mode-btn active" data-mode="shortlink">สร้างลิงก์สั้น</button>
+                <button class="mode-btn" data-mode="qrcode">สร้าง QR Code</button>
+                <button class="mode-btn" data-mode="both">สร้างทั้งลิงก์และ QR</button>
             </div>
 
             <!-- Input Section -->
@@ -101,7 +101,7 @@
             </div>
 
             <!-- QR Options (Hidden in Shortlink mode) -->
-            <div class="qr-options-panel" id="qrOptionsPanel">
+            <div class="qr-options-panel hidden" id="qrOptionsPanel">
                 <h3 class="panel-title">ตกแต่ง QR Code</h3>
                 <div class="qr-grid">
                     <div class="qr-control">

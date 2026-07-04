@@ -18,7 +18,7 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 let currentUser = null;
-let currentMode = 'both'; // 'both', 'shortlink', 'qrcode'
+let currentMode = 'shortlink'; // 'both', 'shortlink', 'qrcode'
 
 function generateRandomString(length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
