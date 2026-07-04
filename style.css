@@ -295,6 +295,121 @@ textarea:focus, select:focus {
     border-color: #d1d5db;
 }
 
+/* History Section */
+.history-section {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.history-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Prompt', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.text-btn:hover {
+    color: #dc2626;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    gap: 10px;
+    transition: background-color 0.2s;
+}
+
+.history-item:hover {
+    background-color: #f3f4f6;
+}
+
+.history-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #e5e7eb;
+    border-radius: 6px;
+    font-size: 1.2rem;
+}
+
+.history-details {
+    flex: 1;
+    overflow: hidden;
+}
+
+.history-text {
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.restore-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-family: 'Prompt', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.restore-btn:hover {
+    opacity: 0.9;
+}
+
+.restore-btn:active {
+    transform: scale(0.95);
+}
+
 .footer {
     text-align: center;
     color: var(--text-muted);

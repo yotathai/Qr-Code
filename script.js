@@ -98,6 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Save to History
+        saveHistory(text, currentMode, currentColor);
+
         outputSection.classList.remove('hidden');
 
         if (currentMode === 'qrcode') {
@@ -245,4 +248,92 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadLink.href = dataUrl;
         downloadLink.click();
     });
+
+    // --- History System (Local Storage) ---
+    const historyList = document.getElementById('historyList');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const historySection = document.getElementById('historySection');
+
+    // Initial Load
+    loadHistory();
+
+    function saveHistory(text, mode, color) {
+        let history = JSON.parse(localStorage.getItem('qrHistory') || '[]');
+        
+        // Remove exact duplicates from previous positions to move to top
+        history = history.filter(item => item.text !== text || item.mode !== mode);
+        
+        history.unshift({
+            text: text,
+            mode: mode,
+            color: color,
+            timestamp: Date.now()
+        });
+
+        // Keep only last 10 items to save space
+        if (history.length > 10) history.pop();
+        
+        localStorage.setItem('qrHistory', JSON.stringify(history));
+        loadHistory();
+    }
+
+    function loadHistory() {
+        let history = JSON.parse(localStorage.getItem('qrHistory') || '[]');
+        
+        if (history.length === 0) {
+            if (historySection) historySection.classList.add('hidden');
+            return;
+        }
+        
+        if (historySection) historySection.classList.remove('hidden');
+        if (historyList) historyList.innerHTML = '';
+        
+        history.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            
+            const icon = item.mode === 'qrcode' ? '🔳' : '|||';
+            const date = new Date(item.timestamp).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            
+            div.innerHTML = `
+                <div class="history-icon">${icon}</div>
+                <div class="history-details">
+                    <div class="history-text" title="${item.text}">${item.text}</div>
+                    <div class="history-date">${item.mode === 'qrcode' ? 'QR Code' : 'Barcode'} • ${date}</div>
+                </div>
+                <button class="restore-btn" style="background-color: ${item.color}">โหลดข้อมูล</button>
+            `;
+            
+            div.querySelector('.restore-btn').addEventListener('click', () => {
+                // Restore text
+                inputData.value = item.text;
+                
+                // Switch tab
+                const targetTab = Array.from(tabs).find(t => t.dataset.target === item.mode);
+                if (targetTab) targetTab.click();
+                
+                // Select color
+                const targetColor = Array.from(colorSwatches).find(c => c.dataset.color === item.color);
+                if (targetColor) {
+                    colorSwatches.forEach(s => s.classList.remove('active'));
+                    targetColor.classList.add('active');
+                    currentColor = item.color;
+                }
+                
+                // Generate
+                generateBtn.click();
+            });
+            
+            historyList.appendChild(div);
+        });
+    }
+
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', () => {
+            if(confirm('ต้องการล้างประวัติการสร้างทั้งหมดใช่หรือไม่?')) {
+                localStorage.removeItem('qrHistory');
+                loadHistory();
+            }
+        });
+    }
 });
