@@ -604,10 +604,6 @@ input[type="color"] {
         gap: 4px !important;
         justify-content: center;
     }
-    
-    .btn-login .btn-text {
-        display: none;
-    }
 
     .user-profile {
         gap: 8px;
