@@ -37,35 +37,17 @@ body {
     margin-bottom: 2rem;
 }
 
-.shield-icon {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 48px;
-    height: 48px;
-    background-color: #ffedd5;
-    color: var(--primary-color);
-    border-radius: 50%;
-    margin-bottom: 0.5rem;
-}
-
-.shield-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
 .logo-container {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-.logo-text {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    letter-spacing: -0.5px;
+.main-logo {
+    max-width: 150px; /* Adjust size as needed */
+    height: auto;
+    object-fit: contain;
 }
 
 .header h2 {
