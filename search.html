@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yotathai - ระบบค้นหาจัดซื้อจัดจ้างอัจฉริยะ (Prototype)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f97316; /* Orange */
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: var(--text-muted);
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 20px 25px;
+            font-size: 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2);
+        }
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .result-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .result-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .badge.law { background: #fee2e2; color: #ef4444; }
+        .badge.rule { background: #e0e7ff; color: #4f46e5; }
+        .badge.letter { background: #dcfce7; color: #16a34a; }
+        
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+        .result-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .result-snippet {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        .highlight {
+            background-color: #fef08a;
+            font-weight: 600;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        
+        /* Stats */
+        .stats {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Yotathai Search ⚡</h1>
+            <p>ระบบค้นหาหนังสือสั่งการ กรมบัญชีกลาง (แบบจำลอง)</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="พิมพ์คำค้นหา เช่น 'ค่าปรับ', 'ว.119', 'ราคากลาง'..." autocomplete="off">
+        </div>
+        
+        <div class="stats" id="searchStats">
+            <!-- Stats will show here -->
+        </div>
+
+        <div class="results-container" id="resultsList">
+            <!-- Results will populate here -->
+        </div>
+    </div>
+
+    <script>
+        // Mock Database: Simulating what we would extract via OCR from PDFs
+        const mockDatabase = [
+            {
+                id: 1,
+                type: 'letter',
+                typeLabel: 'หนังสือเวียน (ว.)',
+                badgeClass: 'letter',
+                refNumber: 'ด่วนที่สุด ที่ กค (กวจ) 0405.2/ว 119',
+                date: '9 มีนาคม 2561',
+                title: 'แนวทางปฏิบัติในการจัดทำร่างขอบเขตของงาน (TOR) และรายละเอียดคุณลักษณะเฉพาะของพัสดุ',
+                content: 'เพื่อให้หน่วยงานของรัฐมีแนวทางปฏิบัติที่ชัดเจนในการจัดทำร่างขอบเขตของงาน (TOR) สำหรับงานจ้างก่อสร้าง งานจ้างทำของ หรืองานจ้างให้บริการ ให้ครอบคลุมถึงการกำหนดค่าปรับในกรณีที่มีการทำงานล่าช้า...'
+            },
+            {
+                id: 2,
+                type: 'rule',
+                typeLabel: 'ระเบียบกระทรวงการคลัง',
+                badgeClass: 'rule',
+                refNumber: 'ระเบียบฯ พ.ศ. 2560',
+                date: '23 สิงหาคม 2560',
+                title: 'ระเบียบกระทรวงการคลังว่าด้วยการจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560',
+                content: 'ข้อ 162 การคิดค่าปรับตามสัญญาหรือข้อตกลง ให้คิดในอัตราที่กำหนดไว้ในสัญญา โดยคำนวณเป็นรายวัน นับแต่วันถัดจากวันครบกำหนดส่งมอบงานจนถึงวันที่ผู้รับจ้างส่งมอบงานถูกต้องครบถ้วน'
+            },
+            {
+                id: 3,
+                type: 'law',
+                typeLabel: 'พระราชบัญญัติ',
+                badgeClass: 'law',
+                refNumber: 'พ.ร.บ. จัดซื้อจัดจ้างฯ พ.ศ. 2560',
+                date: '24 กุมภาพันธ์ 2560',
+                title: 'พระราชบัญญัติการจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560',
+                content: 'มาตรา 4 ในพระราชบัญญัตินี้ "ราคากลาง" หมายความว่า ราคาเพื่อใช้เป็นฐานเปรียบเทียบราคาที่ผู้ยื่นข้อเสนอได้เสนอไว้ ซึ่งสามารถจัดทำได้ตามหลักเกณฑ์ที่คณะกรรมการราคากลางกำหนด...'
+            },
+            {
+                id: 4,
+                type: 'letter',
+                typeLabel: 'หนังสือตอบข้อหารือ',
+                badgeClass: 'letter',
+                refNumber: 'ที่ กค (กวจ) 0405.2/01234',
+                date: '15 พฤษภาคม 2565',
+                title: 'ข้อหารือเกี่ยวกับการปรับปรุงแนวทางคำนวณราคากลางงานก่อสร้าง',
+                content: 'คณะกรรมการราคากลางพิจารณาแล้วเห็นว่า กรณีที่เทศบาลจะดำเนินการปรับปรุงถนนคอนกรีตเสริมเหล็ก ต้องใช้หลักเกณฑ์การคำนวณราคากลางงานก่อสร้างทาง สะพาน และท่อเหลี่ยม ห้ามใช้หลักเกณฑ์งานอาคารเด็ดขาด...'
+            },
+            {
+                id: 5,
+                type: 'letter',
+                typeLabel: 'หนังสือเวียน (ว.)',
+                badgeClass: 'letter',
+                refNumber: 'ด่วนที่สุด ที่ กค (กวจ) 0405.2/ว 452',
+                date: '10 สิงหาคม 2563',
+                title: 'มาตรการให้ความช่วยเหลือผู้ประกอบการในช่วงการแพร่ระบาดของโรคติดเชื้อไวรัสโคโรนา 2019',
+                content: 'กำหนดให้หน่วยงานของรัฐสามารถพิจารณางดหรือลดค่าปรับให้แก่ผู้รับจ้าง หรือขยายระยะเวลาทำการตามสัญญาออกไปได้ โดยให้ถือว่าผลกระทบจาก COVID-19 เป็นเหตุสุดวิสัย...'
+            }
+        ];
+
+        const searchInput = document.getElementById('searchInput');
+        const resultsList = document.getElementById('resultsList');
+        const searchStats = document.getElementById('searchStats');
+
+        // Function to highlight search term
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // Render initial state (show all)
+        renderResults(mockDatabase, "");
+
+        // Search event listener (Instant Search)
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            
+            const startTime = performance.now();
+            
+            // Search logic: Check title, refNumber, AND inside content (mock OCR)
+            const filteredData = mockDatabase.filter(item => {
+                return item.title.toLowerCase().includes(query) ||
+                       item.refNumber.toLowerCase().includes(query) ||
+                       item.content.toLowerCase().includes(query) ||
+                       item.typeLabel.toLowerCase().includes(query);
+            });
+            
+            const endTime = performance.now();
+            const timeTaken = (endTime - startTime).toFixed(2);
+            
+            searchStats.innerHTML = query ? `พบ ${filteredData.length} รายการ จากฐานข้อมูล (ใช้เวลาค้นหา ${timeTaken} มิลลิวินาที)` : '';
+            
+            renderResults(filteredData, query);
+        });
+
+        function renderResults(data, query) {
+            resultsList.innerHTML = '';
+            
+            if (data.length === 0) {
+                resultsList.innerHTML = `
+                    <div class="no-results">
+                        <svg style="width:50px;height:50px;margin:0 auto 10px;color:#cbd5e1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p>ไม่พบข้อมูลที่ตรงกับ "${query}"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                
+                // Simulate showing exactly where the word was found in the document (like Google Snippets)
+                let snippetContent = item.content;
+                if (query && item.content.toLowerCase().includes(query)) {
+                    // Truncate to show context around keyword
+                    const index = item.content.toLowerCase().indexOf(query);
+                    const start = Math.max(0, index - 50);
+                    const end = Math.min(item.content.length, index + query.length + 50);
+                    snippetContent = (start > 0 ? '...' : '') + item.content.substring(start, end) + (end < item.content.length ? '...' : '');
+                }
+
+                card.innerHTML = `
+                    <span class="badge ${item.badgeClass}">${item.typeLabel}</span>
+                    <div class="result-title">${highlightText(item.title, query)}</div>
+                    <div class="result-meta">
+                        <strong>เลขที่:</strong> ${highlightText(item.refNumber, query)} | <strong>ลงวันที่:</strong> ${item.date}
+                    </div>
+                    <div class="result-snippet">
+                        <em>"...${highlightText(snippetContent, query)}..."</em>
+                    </div>
+                `;
+                resultsList.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
