@@ -412,18 +412,19 @@ input[type="color"] {
 }
 
 .result-grid {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 30px;
 }
 
 @media(min-width: 768px) {
-    .result-grid {
-        grid-template-columns: 1fr 1fr;
-    }
+    /* Removed grid-template-columns as we now use flex */
 }
 
 .result-item {
+    flex: 1 1 300px;
+    max-width: 500px;
     background: var(--input-bg);
     padding: 24px;
     border-radius: 16px;
