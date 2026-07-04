@@ -469,7 +469,11 @@ async function loadHistory() {
             
             tr.innerHTML = `
                 <td>${shortlinkHtml}</td>
-                <td style="word-break: break-all; font-size: 0.85rem;" title="${data.originalUrl}">${data.originalUrl}</td>
+                <td style="text-align: center;">
+                    <a href="${data.originalUrl}" target="_blank" title="${data.originalUrl}" style="display: inline-block; background: #e5e7eb; color: #374151; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 0.8rem; white-space: nowrap;">
+                        🔗 ดูลิงก์
+                    </a>
+                </td>
                 <td><span class="badge ${badgeClass}">${modeText}</span></td>
                 <td>${data.clicks || 0}</td>
                 <td>${date}</td>
