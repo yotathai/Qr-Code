@@ -55,6 +55,9 @@ document.documentElement.setAttribute('data-theme', savedTheme);
 const authRequiredBanner = document.getElementById('authRequiredBanner');
 const longUrlInput = document.getElementById('longUrl');
 const customAliasInput = document.getElementById('customAlias');
+const enableCustomAlias = document.getElementById('enableCustomAlias');
+const aliasWrapper = document.getElementById('aliasWrapper');
+const aliasHelper = document.getElementById('aliasHelper');
 const qrColorInput = document.getElementById('qrColor');
 const qrBgColorInput = document.getElementById('qrBgColor');
 const qrLogoInput = document.getElementById('qrLogo');
@@ -116,14 +119,17 @@ onAuthStateChanged(auth, (user) => {
         // Enable inputs
         longUrlInput.disabled = false;
         customAliasInput.disabled = false;
+        enableCustomAlias.disabled = false;
         qrColorInput.disabled = false;
         qrBgColorInput.disabled = false;
         qrLogoInput.disabled = false;
         generateBtn.disabled = false;
         
-        if (!customAliasInput.value) {
-            customAliasInput.value = generateRandomString(6);
-        }
+        // Reset checkbox state
+        enableCustomAlias.checked = false;
+        aliasWrapper.classList.add('hidden');
+        aliasHelper.classList.add('hidden');
+        customAliasInput.value = generateRandomString(6);
         
         historySection.classList.remove('hidden');
         loadHistory();
@@ -139,10 +145,25 @@ onAuthStateChanged(auth, (user) => {
         // Disable inputs
         longUrlInput.disabled = true;
         customAliasInput.disabled = true;
+        enableCustomAlias.disabled = true;
         qrColorInput.disabled = true;
         qrBgColorInput.disabled = true;
         qrLogoInput.disabled = true;
         generateBtn.disabled = true;
+    }
+});
+
+// Custom Alias Checkbox Logic
+enableCustomAlias.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        aliasWrapper.classList.remove('hidden');
+        aliasHelper.classList.remove('hidden');
+        customAliasInput.value = '';
+        customAliasInput.focus();
+    } else {
+        aliasWrapper.classList.add('hidden');
+        aliasHelper.classList.add('hidden');
+        customAliasInput.value = generateRandomString(6);
     }
 });
 
@@ -251,7 +272,13 @@ generateBtn.addEventListener('click', async () => {
         loadHistory();
         
         longUrlInput.value = '';
+        
+        // Reset alias
+        enableCustomAlias.checked = false;
+        aliasWrapper.classList.add('hidden');
+        aliasHelper.classList.add('hidden');
         customAliasInput.value = generateRandomString(6);
+        
         qrLogoInput.value = '';
         logoPreviewContainer.classList.add('hidden');
         logoPreview.src = '';

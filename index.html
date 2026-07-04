@@ -80,11 +80,16 @@
 
             <!-- Custom Alias -->
             <div class="input-group" id="aliasGroup">
-                <div class="alias-wrapper" style="display: flex; align-items: center; background: var(--input-bg); border-radius: 8px; border: 1px solid var(--border); overflow: hidden;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 10px; color: var(--text-main);">
+                    <input type="checkbox" id="enableCustomAlias" style="width: 18px; height: 18px; cursor: pointer;" disabled>
+                    <span style="font-weight: 500;">กำหนดชื่อลิงก์เอง (Custom Alias)</span>
+                </label>
+                
+                <div class="alias-wrapper hidden" id="aliasWrapper" style="display: flex; align-items: center; background: var(--input-bg); border-radius: 8px; border: 1px solid var(--border); overflow: hidden;">
                     <span class="alias-prefix">th-go.link/</span>
-                    <input type="text" id="customAlias" placeholder="กำหนดชื่อลิงก์เอง (ถ้ามี)" disabled>
+                    <input type="text" id="customAlias" placeholder="เช่น my-shop" disabled>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">
+                <div id="aliasHelper" class="hidden" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">
                     *อนุญาตให้ใช้เฉพาะภาษาอังกฤษ ตัวเลข และขีดกลาง (-) ความยาวอย่างน้อย 4 ตัวอักษร
                 </div>
             </div>
