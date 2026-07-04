@@ -105,6 +105,12 @@
                     <div class="qr-control file-upload-wrapper">
                         <label>โลโก้ตรงกลาง (ถ้ามี)</label>
                         <input type="file" id="qrLogo" accept="image/*" disabled class="file-input">
+                        
+                        <!-- Logo Preview -->
+                        <div id="logoPreviewContainer" class="hidden" style="margin-top: 10px; position: relative; display: inline-block;">
+                            <img id="logoPreview" src="" alt="Preview" style="max-width: 60px; max-height: 60px; border-radius: 8px; border: 1px solid var(--border); background: white; object-fit: contain;">
+                            <button id="removeLogoBtn" title="ลบรูป" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">✕</button>
+                        </div>
                     </div>
                 </div>
             </div>

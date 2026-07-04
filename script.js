@@ -49,6 +49,9 @@ const customAliasInput = document.getElementById('customAlias');
 const qrColorInput = document.getElementById('qrColor');
 const qrBgColorInput = document.getElementById('qrBgColor');
 const qrLogoInput = document.getElementById('qrLogo');
+const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+const logoPreview = document.getElementById('logoPreview');
+const removeLogoBtn = document.getElementById('removeLogoBtn');
 const generateBtn = document.getElementById('generateBtn');
 
 const modeBtns = document.querySelectorAll('.mode-btn');
@@ -142,6 +145,25 @@ logoutBtn.addEventListener('click', () => {
     signOut(auth);
 });
 
+// Logo Preview Logic
+qrLogoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        logoPreview.src = URL.createObjectURL(file);
+        logoPreviewContainer.classList.remove('hidden');
+    } else {
+        logoPreviewContainer.classList.add('hidden');
+        logoPreview.src = '';
+    }
+});
+
+removeLogoBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    qrLogoInput.value = ''; 
+    logoPreviewContainer.classList.add('hidden');
+    logoPreview.src = '';
+});
+
 // Generate Button Click
 generateBtn.addEventListener('click', async () => {
     const longUrl = longUrlInput.value.trim();
@@ -204,6 +226,9 @@ generateBtn.addEventListener('click', async () => {
         
         longUrlInput.value = '';
         customAliasInput.value = '';
+        qrLogoInput.value = '';
+        logoPreviewContainer.classList.add('hidden');
+        logoPreview.src = '';
         
     } catch (error) {
         console.error("Generate Error:", error);
