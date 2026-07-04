@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /shortlinks/{document} {
+      // 1. อ่านได้ทุกคน (จำเป็นสำหรับการทำ Redirect ในหน้า 404.html)
+      allow read: if true;
+      
+      // 2. สร้างใหม่ได้เฉพาะคนที่ล็อกอินแล้วเท่านั้น
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      
+      // 3. แก้ไขได้เฉพาะคนที่ล็อกอินและเป็นเจ้าของลิงก์เท่านั้น (หรือยอมให้หน้า 404.html อัปเดตจำนวนคลิกได้)
+      allow update: if (request.auth != null && request.auth.uid == resource.data.uid) 
+                    || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clicks']));
+      
+      // 4. ลบได้เฉพาะคนที่ล็อกอินและเป็นเจ้าของลิงก์เท่านั้น
+      allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+  }
+}
