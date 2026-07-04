@@ -355,9 +355,7 @@ async function loadHistory() {
     try {
         const q = query(
             collection(db, "shortlinks"),
-            where("uid", "==", currentUser.uid),
-            orderBy("createdAt", "desc"),
-            limit(20)
+            where("uid", "==", currentUser.uid)
         );
         
         const snapshot = await getDocs(q);
@@ -368,8 +366,20 @@ async function loadHistory() {
             return;
         }
         
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        let docs = [];
+        snapshot.forEach(doc => docs.push(doc.data()));
+        
+        // Sort descending by createdAt
+        docs.sort((a, b) => {
+            const t1 = a.createdAt ? a.createdAt.toDate().getTime() : 0;
+            const t2 = b.createdAt ? b.createdAt.toDate().getTime() : 0;
+            return t2 - t1;
+        });
+        
+        // Take top 20
+        docs = docs.slice(0, 20);
+        
+        docs.forEach(data => {
             const tr = document.createElement('tr');
             
             const date = data.createdAt ? data.createdAt.toDate().toLocaleDateString('th-TH') : '-';
