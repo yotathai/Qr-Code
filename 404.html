@@ -73,7 +73,7 @@
             }
 
             try {
-                const q = query(collection(db, "shortlinks"), where("short_code", "==", path));
+                const q = query(collection(db, "shortlinks"), where("alias", "==", path));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
@@ -90,7 +90,7 @@
                     }
 
                     statusMessage.textContent = "กำลังพาท่านไป...";
-                    window.location.replace(data.original_url);
+                    window.location.replace(data.originalUrl);
                 } else {
                     statusMessage.textContent = "ไม่พบลิงก์นี้ในระบบ";
                     setTimeout(() => {
