@@ -9,10 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.getElementById('downloadBtn');
     const barcodeFormat = document.getElementById('barcodeFormat');
     const colorSwatches = document.querySelectorAll('.color-swatch');
+    
+    // Logo Upload Elements
+    const logoUploadContainer = document.getElementById('logoUploadContainer');
+    const logoInput = document.getElementById('logoInput');
+    const logoFileName = document.getElementById('logoFileName');
+    const removeLogoBtn = document.getElementById('removeLogoBtn');
 
     let currentMode = 'qrcode'; // 'qrcode' or 'barcode'
     let currentColor = '#f97316'; // Default Orange
     let qrCodeInstance = null;
+    let uploadedLogo = null;
 
     // Color Selection
     colorSwatches.forEach(swatch => {
@@ -30,6 +37,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Logo Upload Logic
+    logoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            logoFileName.textContent = file.name;
+            removeLogoBtn.classList.remove('hidden');
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                uploadedLogo = event.target.result;
+                // Auto regenerate if text exists
+                if (inputData.value.trim()) {
+                    generateBtn.click();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    removeLogoBtn.addEventListener('click', function() {
+        logoInput.value = '';
+        logoFileName.textContent = 'เลือกไฟล์รูปภาพ (ไม่บังคับ)';
+        removeLogoBtn.classList.add('hidden');
+        uploadedLogo = null;
+        if (inputData.value.trim()) {
+            generateBtn.click();
+        }
+    });
+
     // Tab Switching
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -39,12 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentMode = tab.dataset.target;
 
-            // Toggle Barcode format options
+            // Toggle Barcode format options and Logo upload
             if (currentMode === 'barcode') {
                 barcodeFormatContainer.classList.remove('hidden');
+                logoUploadContainer.classList.add('hidden');
                 inputData.placeholder = "รหัสบาร์โค้ด เช่น 123456789";
             } else {
                 barcodeFormatContainer.classList.add('hidden');
+                logoUploadContainer.classList.remove('hidden');
                 inputData.placeholder = "ตัวอย่าง: https://www.google.com หรือ รหัสพัสดุ 123456789";
             }
             
@@ -90,8 +127,36 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Scale it down via CSS for display, but keep actual size large for downloading
         setTimeout(() => {
-            const img = qrcodeDisplay.querySelector('img');
             const canvas = qrcodeDisplay.querySelector('canvas');
+            const img = qrcodeDisplay.querySelector('img');
+
+            if (canvas && uploadedLogo) {
+                const ctx = canvas.getContext('2d');
+                const centerImage = new Image();
+                centerImage.onload = function() {
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+                    
+                    // Logo size (25% of QR code)
+                    const logoSize = canvasWidth * 0.25;
+                    const x = (canvasWidth - logoSize) / 2;
+                    const y = (canvasHeight - logoSize) / 2;
+                    
+                    // Draw a white background for the logo
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
+                    
+                    // Draw the uploaded logo
+                    ctx.drawImage(centerImage, x, y, logoSize, logoSize);
+                    
+                    // Update the <img> tag created by qrcode.js
+                    if (img) {
+                        img.src = canvas.toDataURL("image/png");
+                    }
+                };
+                centerImage.src = uploadedLogo;
+            }
+
             if (img) {
                  img.style.maxWidth = '100%';
                  img.style.height = 'auto';
