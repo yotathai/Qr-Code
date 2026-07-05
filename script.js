@@ -458,6 +458,19 @@ generateBtn.addEventListener('click', async () => {
         alert("ลิงก์ต้องขึ้นต้นด้วย http:// หรือ https://");
         return;
     }
+    
+    // SPAM PROTECTION: Blacklist keywords commonly used by spammers
+    const spamKeywords = [
+        'slot', 'pgslot', 'ufabet', 'ufa88', 'ufa99', 'ufa168', 'casino', 'baccarat', 
+        'บาคาร่า', 'สล็อต', 'คาสิโน', 'เครดิตฟรี', 'เว็บตรง', 'แทงบอล', 'หวยออนไลน์', 
+        'gclub', 'joker123', 'sagaming', 'sexybaccarat', 'แจกเครดิต', 'รับเงินฟรี'
+    ];
+    const urlLower = longUrl.toLowerCase();
+    const isSpam = spamKeywords.some(keyword => urlLower.includes(keyword));
+    if (isSpam) {
+        alert("ระบบตรวจพบลิงก์ที่อาจเข้าข่ายการพนันหรือสแปม จึงไม่อนุญาตให้สร้างลิงก์ครับ (Anti-Spam Protection)");
+        return;
+    }
 
     const customAlias = customAliasInput.value.trim();
     let aliasToUse = customAlias;
@@ -496,6 +509,7 @@ generateBtn.addEventListener('click', async () => {
         // Save to Firestore (Always save alias so QR code is clean and trackable)
         await addDoc(collection(db, "shortlinks"), {
             uid: currentUser.uid,
+            email: currentUser.email || 'unknown', // Track who created the link to ban spammers
             originalUrl: longUrl,
             alias: aliasToUse,
             mode: currentMode,
