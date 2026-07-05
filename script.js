@@ -112,7 +112,7 @@ modeBtns.forEach(btn => {
             aliasGroup.classList.remove('hidden');
         } else if (currentMode === 'qrcode') {
             qrOptionsPanel.classList.remove('hidden');
-            aliasGroup.classList.add('hidden');
+            aliasGroup.classList.remove('hidden'); // Changed to remove hidden so it always shows
         } else {
             qrOptionsPanel.classList.remove('hidden');
             aliasGroup.classList.remove('hidden');
