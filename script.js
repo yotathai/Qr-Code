@@ -62,6 +62,8 @@ const aliasHelper = document.getElementById('aliasHelper');
 const qrColorInput = document.getElementById('qrColor');
 const qrBgColorInput = document.getElementById('qrBgColor');
 const qrLogoInput = document.getElementById('qrLogo');
+const enableQrTextLabel = document.getElementById('enableQrTextLabel');
+const qrTextLabelWrapper = document.getElementById('qrTextLabelWrapper');
 const qrTextLabelInput = document.getElementById('qrTextLabel');
 const logoPreviewContainer = document.getElementById('logoPreviewContainer');
 const logoPreview = document.getElementById('logoPreview');
@@ -149,6 +151,7 @@ onAuthStateChanged(auth, (user) => {
         qrColorInput.disabled = false;
         qrBgColorInput.disabled = false;
         qrLogoInput.disabled = false;
+        enableQrTextLabel.disabled = false;
         qrTextLabelInput.disabled = false;
         generateBtn.disabled = false;
         
@@ -157,6 +160,10 @@ onAuthStateChanged(auth, (user) => {
         aliasWrapper.classList.add('hidden');
         aliasHelper.classList.add('hidden');
         customAliasInput.value = generateRandomString(6);
+        
+        enableQrTextLabel.checked = false;
+        qrTextLabelWrapper.classList.add('hidden');
+        qrTextLabelInput.value = '';
         
         historySection.classList.remove('hidden');
         loadHistory();
@@ -177,8 +184,19 @@ onAuthStateChanged(auth, (user) => {
         qrColorInput.disabled = true;
         qrBgColorInput.disabled = true;
         qrLogoInput.disabled = true;
+        enableQrTextLabel.disabled = true;
         qrTextLabelInput.disabled = true;
         generateBtn.disabled = true;
+    }
+});
+
+enableQrTextLabel.addEventListener('change', () => {
+    if (enableQrTextLabel.checked) {
+        qrTextLabelWrapper.classList.remove('hidden');
+        qrTextLabelInput.focus();
+    } else {
+        qrTextLabelWrapper.classList.add('hidden');
+        qrTextLabelInput.value = '';
     }
 });
 
@@ -568,7 +586,7 @@ async function showResult(longUrl, alias) {
         const colorDark = qrColorInput.value;
         const colorLight = qrBgColorInput.value;
         const logoDataUrl = selectedLogoDataUrl;
-        const qrText = qrTextLabelInput.value.trim();
+        const qrText = enableQrTextLabel.checked ? qrTextLabelInput.value.trim() : "";
         
         await generateQR(urlToEncode, colorDark, colorLight, logoDataUrl, qrText);
     } else {
@@ -616,8 +634,21 @@ async function generateQR(url, darkColor, lightColor, logoDataUrl, qrText = "") 
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(qrCanvas, 0, 0);
             
-            // Define text properties
-            const fontSize = 16;
+            // Define initial text properties
+            let fontSize = 24;
+            ctx.font = `600 ${fontSize}px Prompt, sans-serif`;
+            
+            // Calculate max width for text
+            const maxWidth = qrCanvas.width - 20; // 10px padding on each side
+            let textWidth = ctx.measureText(qrText).width;
+            
+            // Scale down font size if text is too long
+            while (textWidth > maxWidth && fontSize > 14) {
+                fontSize -= 1;
+                ctx.font = `600 ${fontSize}px Prompt, sans-serif`;
+                textWidth = ctx.measureText(qrText).width;
+            }
+            
             const textPadding = 20;
             const extraHeight = fontSize + (textPadding * 2);
             

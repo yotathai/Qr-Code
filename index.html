@@ -178,10 +178,13 @@
                 </div>
                 <!-- QR Text Label Option -->
                 <div class="input-group" style="margin-top: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--text-main); font-weight: 500;">
-                        ข้อความใต้ QR Code (ตัวเลือกเสริม)
+                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--text-main); font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" id="enableQrTextLabel" style="width: 18px; height: 18px;" disabled>
+                        เพิ่มข้อความใต้ QR Code (ตัวเลือกเสริม)
                     </label>
-                    <input type="text" id="qrTextLabel" placeholder="เช่น เลขที่หนังสือ, คำอธิบายสั้นๆ (ถ้าไม่ต้องการให้เว้นว่างไว้)" disabled>
+                    <div id="qrTextLabelWrapper" class="hidden">
+                        <input type="text" id="qrTextLabel" placeholder="เช่น เลขที่หนังสือ (ไม่เกิน 30 ตัวอักษร)" maxlength="30" disabled style="margin-top: 8px;">
+                    </div>
                 </div>
             </div>
 
