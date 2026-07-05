@@ -2,6 +2,7 @@
   "name": "TH-GO Shortlink",
   "short_name": "TH-GO",
   "description": "บริการย่อลิงก์และสร้าง QR Code โดยโยธาไทย",
+  "id": "/?source=pwa",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f8fafc",
