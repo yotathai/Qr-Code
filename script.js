@@ -62,6 +62,7 @@ const aliasHelper = document.getElementById('aliasHelper');
 const qrColorInput = document.getElementById('qrColor');
 const qrBgColorInput = document.getElementById('qrBgColor');
 const qrLogoInput = document.getElementById('qrLogo');
+const qrTextLabelInput = document.getElementById('qrTextLabel');
 const logoPreviewContainer = document.getElementById('logoPreviewContainer');
 const logoPreview = document.getElementById('logoPreview');
 const removeLogoBtn = document.getElementById('removeLogoBtn');
@@ -148,6 +149,7 @@ onAuthStateChanged(auth, (user) => {
         qrColorInput.disabled = false;
         qrBgColorInput.disabled = false;
         qrLogoInput.disabled = false;
+        qrTextLabelInput.disabled = false;
         generateBtn.disabled = false;
         
         // Reset checkbox state
@@ -175,6 +177,7 @@ onAuthStateChanged(auth, (user) => {
         qrColorInput.disabled = true;
         qrBgColorInput.disabled = true;
         qrLogoInput.disabled = true;
+        qrTextLabelInput.disabled = true;
         generateBtn.disabled = true;
     }
 });
@@ -565,14 +568,15 @@ async function showResult(longUrl, alias) {
         const colorDark = qrColorInput.value;
         const colorLight = qrBgColorInput.value;
         const logoDataUrl = selectedLogoDataUrl;
+        const qrText = qrTextLabelInput.value.trim();
         
-        await generateQR(urlToEncode, colorDark, colorLight, logoDataUrl);
+        await generateQR(urlToEncode, colorDark, colorLight, logoDataUrl, qrText);
     } else {
         qrResult.classList.add('hidden');
     }
 }
 
-async function generateQR(url, darkColor, lightColor, logoDataUrl) {
+async function generateQR(url, darkColor, lightColor, logoDataUrl, qrText = "") {
     const opts = {
         errorCorrectionLevel: logoDataUrl ? 'H' : 'M',
         margin: 2,
@@ -585,21 +589,54 @@ async function generateQR(url, darkColor, lightColor, logoDataUrl) {
 
     try {
         await QRCode.toCanvas(qrCanvas, url, opts);
+        const ctx = qrCanvas.getContext('2d');
         
         if (logoDataUrl) {
-            const ctx = qrCanvas.getContext('2d');
-            const img = new Image();
-            img.onload = () => {
-                const logoSize = qrCanvas.width * 0.25;
-                const center = (qrCanvas.width - logoSize) / 2;
-                
-                // White background for logo
-                ctx.fillStyle = lightColor;
-                ctx.fillRect(center - 5, center - 5, logoSize + 10, logoSize + 10);
-                
-                ctx.drawImage(img, center, center, logoSize, logoSize);
-            };
-            img.src = logoDataUrl;
+            await new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const logoSize = qrCanvas.width * 0.25;
+                    const center = (qrCanvas.width - logoSize) / 2;
+                    
+                    // White background for logo
+                    ctx.fillStyle = lightColor;
+                    ctx.fillRect(center - 5, center - 5, logoSize + 10, logoSize + 10);
+                    ctx.drawImage(img, center, center, logoSize, logoSize);
+                    resolve();
+                };
+                img.src = logoDataUrl;
+            });
+        }
+        
+        if (qrText) {
+            // Save current QR code to a temporary canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = qrCanvas.width;
+            tempCanvas.height = qrCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(qrCanvas, 0, 0);
+            
+            // Define text properties
+            const fontSize = 16;
+            const textPadding = 20;
+            const extraHeight = fontSize + (textPadding * 2);
+            
+            // Resize actual canvas
+            qrCanvas.height = qrCanvas.height + extraHeight;
+            
+            // Fill new background
+            ctx.fillStyle = lightColor;
+            ctx.fillRect(0, 0, qrCanvas.width, qrCanvas.height);
+            
+            // Redraw QR code at the top
+            ctx.drawImage(tempCanvas, 0, 0);
+            
+            // Draw text at the bottom
+            ctx.font = `600 ${fontSize}px Prompt, sans-serif`;
+            ctx.fillStyle = darkColor;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(qrText, qrCanvas.width / 2, tempCanvas.height + textPadding);
         }
     } catch (err) {
         console.error("QR Error:", err);
