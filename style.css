@@ -807,3 +807,45 @@ input[type="color"] {
     max-width: 500px;
     width: 100%;
 }
+
+/* Color Presets */
+.color-presets {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    align-items: center;
+}
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s, border-color 0.2s;
+}
+[data-theme^="dark"] .color-swatch {
+    border: 2px solid rgba(255,255,255,0.2);
+}
+.color-swatch:hover {
+    transform: scale(1.15);
+}
+.color-swatch.active {
+    border-color: var(--primary) !important;
+    transform: scale(1.1);
+}
+.recent-swatch {
+    border-style: dashed !important;
+    position: relative;
+    margin-left: 8px;
+}
+.recent-swatch::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+}

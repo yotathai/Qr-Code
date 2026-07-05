@@ -193,6 +193,77 @@ enableCustomAlias.addEventListener('change', (e) => {
     }
 });
 
+// Color Presets Logic
+const qrColorPresets = document.querySelectorAll('#qrColorPresets .color-swatch:not(.recent-swatch)');
+const qrBgColorPresets = document.querySelectorAll('#qrBgColorPresets .color-swatch:not(.recent-swatch)');
+const recentQrColor = document.getElementById('recentQrColor');
+const recentQrBgColor = document.getElementById('recentQrBgColor');
+
+// Load recent colors from localStorage
+const savedRecentColor = localStorage.getItem('th-go-recent-color');
+if (savedRecentColor) {
+    recentQrColor.style.backgroundColor = savedRecentColor;
+    recentQrColor.dataset.color = savedRecentColor;
+    recentQrColor.classList.remove('hidden');
+}
+
+const savedRecentBgColor = localStorage.getItem('th-go-recent-bgcolor');
+if (savedRecentBgColor) {
+    recentQrBgColor.style.backgroundColor = savedRecentBgColor;
+    recentQrBgColor.dataset.color = savedRecentBgColor;
+    recentQrBgColor.classList.remove('hidden');
+}
+
+function handleSwatchClick(swatches, inputElement, type) {
+    swatches.forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            if (inputElement.disabled) return;
+            const color = swatch.dataset.color;
+            inputElement.value = color;
+            
+            // Highlight selected swatch
+            const parent = swatch.parentElement;
+            parent.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+            
+            // Trigger change event just in case
+            inputElement.dispatchEvent(new Event('change'));
+        });
+    });
+}
+
+// Add listeners to static presets
+handleSwatchClick(qrColorPresets, qrColorInput, 'color');
+handleSwatchClick(qrBgColorPresets, qrBgColorInput, 'bgcolor');
+// Add listeners to recent swatches
+handleSwatchClick([recentQrColor], qrColorInput, 'color');
+handleSwatchClick([recentQrBgColor], qrBgColorInput, 'bgcolor');
+
+// Save custom color selections to recent on change
+qrColorInput.addEventListener('change', (e) => {
+    const color = e.target.value;
+    localStorage.setItem('th-go-recent-color', color);
+    recentQrColor.style.backgroundColor = color;
+    recentQrColor.dataset.color = color;
+    recentQrColor.classList.remove('hidden');
+    
+    // Remove active from other swatches
+    document.querySelectorAll('#qrColorPresets .color-swatch').forEach(s => s.classList.remove('active'));
+    recentQrColor.classList.add('active');
+});
+
+qrBgColorInput.addEventListener('change', (e) => {
+    const color = e.target.value;
+    localStorage.setItem('th-go-recent-bgcolor', color);
+    recentQrBgColor.style.backgroundColor = color;
+    recentQrBgColor.dataset.color = color;
+    recentQrBgColor.classList.remove('hidden');
+    
+    // Remove active from other swatches
+    document.querySelectorAll('#qrBgColorPresets .color-swatch').forEach(s => s.classList.remove('active'));
+    recentQrBgColor.classList.add('active');
+});
+
 // Clear result when input is empty
 longUrlInput.addEventListener('input', (e) => {
     if (e.target.value.trim() === '') {
