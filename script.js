@@ -797,7 +797,7 @@ async function loadHistory() {
             const date = data.createdAt ? data.createdAt.toDate().toLocaleDateString('th-TH') : '-';
             
             let shortlinkHtml = '-';
-            if (data.mode !== 'qrcode' && data.alias) {
+            if (data.alias) {
                 const url = window.location.origin + '/' + data.alias;
                 shortlinkHtml = `<a href="${url}" target="_blank">${url}</a>`;
             }
