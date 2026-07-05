@@ -246,30 +246,13 @@
         </section>
 
         <!-- Global Website Stats -->
-        <section class="global-stats-section" style="margin-top: 40px;">
-            <h2 class="section-title" style="margin-bottom: 20px; text-align: center; color: var(--text-main);">สถิติการใช้งานเว็บไซต์</h2>
-            <div class="dashboard-grid" id="globalDashboard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary);">
-                    <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ลิงก์ที่สร้างทั้งหมด</h4>
-                    <div id="globalStatTotalLinks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">...</div>
-                </div>
-                <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #10b981;">
-                    <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ลิงก์ที่สร้างวันนี้</h4>
-                    <div id="globalStatTodayLinks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">...</div>
-                </div>
-                <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #f59e0b;">
-                    <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ยอดคนเข้าชมรวมทั้งหมด</h4>
-                    <div id="globalStatTotalClicks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">...</div>
-                </div>
-                <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ec4899;">
-                    <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ยอดคนเข้าชมวันนี้</h4>
-                    <div id="globalStatTodayClicks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">...</div>
-                </div>
-                <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #8b5cf6;">
-                    <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ผู้สมัครเข้าใช้งานทั้งหมด</h4>
-                    <div id="globalStatTotalUsers" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">...</div>
-                </div>
-            </div>
+        <section class="global-stats-section" style="margin-top: 40px; text-align: center; border-top: 1px solid var(--border); padding-top: 20px;">
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; margin: 0;">
+                <strong style="color: var(--text-main);">📊 สถิติการใช้งานเว็บไซต์:</strong> 
+                ผู้สมัคร <strong id="globalStatTotalUsers" style="color: #8b5cf6;">...</strong> คน • 
+                สร้างลิงก์ <strong id="globalStatTotalLinks" style="color: var(--primary);">...</strong> ลิงก์ (วันนี้ <strong id="globalStatTodayLinks" style="color: #10b981;">...</strong>) • 
+                ยอดเข้าชมรวม <strong id="globalStatTotalClicks" style="color: #f59e0b;">...</strong> ครั้ง (วันนี้ <strong id="globalStatTodayClicks" style="color: #ec4899;">...</strong>)
+            </p>
         </section>
     </main>
 
