@@ -201,14 +201,14 @@ const recentQrBgColor = document.getElementById('recentQrBgColor');
 
 // Load recent colors from localStorage
 const savedRecentColor = localStorage.getItem('th-go-recent-color');
-if (savedRecentColor) {
+if (savedRecentColor && recentQrColor) {
     recentQrColor.style.backgroundColor = savedRecentColor;
     recentQrColor.dataset.color = savedRecentColor;
     recentQrColor.classList.remove('hidden');
 }
 
 const savedRecentBgColor = localStorage.getItem('th-go-recent-bgcolor');
-if (savedRecentBgColor) {
+if (savedRecentBgColor && recentQrBgColor) {
     recentQrBgColor.style.backgroundColor = savedRecentBgColor;
     recentQrBgColor.dataset.color = savedRecentBgColor;
     recentQrBgColor.classList.remove('hidden');
@@ -236,32 +236,36 @@ function handleSwatchClick(swatches, inputElement, type) {
 handleSwatchClick(qrColorPresets, qrColorInput, 'color');
 handleSwatchClick(qrBgColorPresets, qrBgColorInput, 'bgcolor');
 // Add listeners to recent swatches
-handleSwatchClick([recentQrColor], qrColorInput, 'color');
-handleSwatchClick([recentQrBgColor], qrBgColorInput, 'bgcolor');
+if (recentQrColor) handleSwatchClick([recentQrColor], qrColorInput, 'color');
+if (recentQrBgColor) handleSwatchClick([recentQrBgColor], qrBgColorInput, 'bgcolor');
 
 // Save custom color selections to recent on change
 qrColorInput.addEventListener('change', (e) => {
     const color = e.target.value;
     localStorage.setItem('th-go-recent-color', color);
-    recentQrColor.style.backgroundColor = color;
-    recentQrColor.dataset.color = color;
-    recentQrColor.classList.remove('hidden');
+    if (recentQrColor) {
+        recentQrColor.style.backgroundColor = color;
+        recentQrColor.dataset.color = color;
+        recentQrColor.classList.remove('hidden');
+    }
     
     // Remove active from other swatches
     document.querySelectorAll('#qrColorPresets .color-swatch').forEach(s => s.classList.remove('active'));
-    recentQrColor.classList.add('active');
+    if (recentQrColor) recentQrColor.classList.add('active');
 });
 
 qrBgColorInput.addEventListener('change', (e) => {
     const color = e.target.value;
     localStorage.setItem('th-go-recent-bgcolor', color);
-    recentQrBgColor.style.backgroundColor = color;
-    recentQrBgColor.dataset.color = color;
-    recentQrBgColor.classList.remove('hidden');
+    if (recentQrBgColor) {
+        recentQrBgColor.style.backgroundColor = color;
+        recentQrBgColor.dataset.color = color;
+        recentQrBgColor.classList.remove('hidden');
+    }
     
     // Remove active from other swatches
     document.querySelectorAll('#qrBgColorPresets .color-swatch').forEach(s => s.classList.remove('active'));
-    recentQrBgColor.classList.add('active');
+    if (recentQrBgColor) recentQrBgColor.classList.add('active');
 });
 
 // Clear result when input is empty
