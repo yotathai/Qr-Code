@@ -774,6 +774,45 @@ async function loadHistory() {
                 }
             }
         };
+
+        window.editAlias = async function(id, currentAlias) {
+            const newAlias = prompt("คำเตือน: หากเปลี่ยนชื่อลิงก์ ผู้ที่เคยสแกน QR Code เก่าจะเข้าเว็บไม่ได้อีกต่อไป\\n\\nกรุณากรอกชื่อลิงก์ใหม่ (เช่น my-shop):", currentAlias);
+            
+            if (newAlias !== null && newAlias.trim() !== "" && newAlias !== currentAlias) {
+                const aliasToUse = newAlias.trim();
+                
+                // Validate format
+                const aliasRegex = /^[a-zA-Z0-9-]+$/;
+                if (!aliasRegex.test(aliasToUse) || aliasToUse.length < 4) {
+                    alert("ชื่อลิงก์ต้องมีความยาวอย่างน้อย 4 ตัวอักษร และประกอบด้วยภาษาอังกฤษ ตัวเลข หรือขีดกลาง (-) เท่านั้นครับ");
+                    return;
+                }
+                
+                try {
+                    // Check availability
+                    const q = query(collection(db, "shortlinks"), where("alias", "==", aliasToUse));
+                    const querySnapshot = await getDocs(q);
+                    
+                    let isTaken = false;
+                    querySnapshot.forEach((doc) => {
+                        if (doc.id !== id) isTaken = true;
+                    });
+                    
+                    if (isTaken) {
+                        alert("ชื่อลิงก์นี้มีคนใช้แล้ว กรุณาเปลี่ยนชื่อใหม่ครับ");
+                        return;
+                    }
+                    
+                    await updateDoc(doc(db, "shortlinks", id), {
+                        alias: aliasToUse
+                    });
+                    loadHistory();
+                } catch (err) {
+                    console.error("Edit Alias Error:", err);
+                    alert("ไม่สามารถแก้ไขชื่อลิงก์ได้: " + err.message);
+                }
+            }
+        };
         
         window.downloadHistoryQR = async function(urlToEncode) {
             try {
@@ -826,11 +865,14 @@ async function loadHistory() {
                 <td>${date}</td>
                 <td>
                     <div style="display: flex; gap: 4px; justify-content: flex-start; align-items: center;">
-                        <button onclick="downloadHistoryQR('${targetUrl}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+                        <button onclick="downloadHistoryQR('${targetUrl}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;" title="โหลด QR">
                             QR
                         </button>
-                        <button onclick="editHistory('${data.id}', '${data.originalUrl}')" style="background:#eab308; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
-                            แก้ไข
+                        <button onclick="editAlias('${data.id}', '${data.alias}')" style="background:#8b5cf6; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;" title="เปลี่ยนชื่อลิงก์สั้น">
+                            ชื่อลิงก์
+                        </button>
+                        <button onclick="editHistory('${data.id}', '${data.originalUrl}')" style="background:#eab308; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;" title="เปลี่ยนลิงก์ปลายทาง">
+                            ปลายทาง
                         </button>
                         <button onclick="deleteHistory('${data.id}')" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
                             ลบ
