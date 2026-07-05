@@ -744,16 +744,65 @@ async function loadHistory() {
         
         if (snapshot.empty) {
             historyList.innerHTML = '<tr><td colspan="5" style="text-align:center;">ยังไม่มีประวัติการใช้งาน</td></tr>';
+            const dashboard = document.getElementById('userDashboard');
+            if(dashboard) dashboard.classList.add('hidden');
             return;
         }
         
         let docs = [];
         snapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
         
+        // Calculate Stats
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        let totalLinks = docs.length;
+        let todayLinks = 0;
+        let totalClicks = 0;
+        let todayClicks = 0;
+        
+        docs.forEach(d => {
+            // Parse date safely
+            let dateObj = null;
+            if (d.createdAt) {
+                if (typeof d.createdAt.toDate === 'function') {
+                    dateObj = d.createdAt.toDate();
+                } else {
+                    dateObj = new Date(d.createdAt);
+                }
+            }
+            d._parsedDate = dateObj; // Cache for sorting
+            
+            if (dateObj) {
+                const dY = dateObj.getFullYear();
+                const dM = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const dD = String(dateObj.getDate()).padStart(2, '0');
+                if (`${dY}-${dM}-${dD}` === todayStr) {
+                    todayLinks++;
+                }
+            }
+            
+            totalClicks += (d.clicks || 0);
+            todayClicks += (d[`clicks_${todayStr}`] || 0);
+        });
+        
+        // Update Dashboard UI
+        const dashboard = document.getElementById('userDashboard');
+        if (dashboard) {
+            dashboard.classList.remove('hidden');
+            document.getElementById('statTotalLinks').textContent = totalLinks.toLocaleString();
+            document.getElementById('statTodayLinks').textContent = todayLinks.toLocaleString();
+            document.getElementById('statTotalClicks').textContent = totalClicks.toLocaleString();
+            document.getElementById('statTodayClicks').textContent = todayClicks.toLocaleString();
+        }
+        
         // Sort descending by createdAt
         docs.sort((a, b) => {
-            const t1 = a.createdAt ? a.createdAt.toDate().getTime() : 0;
-            const t2 = b.createdAt ? b.createdAt.toDate().getTime() : 0;
+            const t1 = a._parsedDate ? a._parsedDate.getTime() : 0;
+            const t2 = b._parsedDate ? b._parsedDate.getTime() : 0;
             return t2 - t1;
         });
         
@@ -851,7 +900,7 @@ async function loadHistory() {
         docs.forEach(data => {
             const tr = document.createElement('tr');
             
-            const date = data.createdAt ? data.createdAt.toDate().toLocaleDateString('th-TH') : '-';
+            const date = data._parsedDate ? data._parsedDate.toLocaleDateString('th-TH') : '-';
             
             let shortlinkHtml = '-';
             if (data.alias) {

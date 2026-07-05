@@ -215,6 +215,26 @@
                 </button>
             </div>
             <div id="historyContentContainer" class="hidden">
+                <!-- User Dashboard Stats -->
+                <div class="dashboard-grid hidden" id="userDashboard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary);">
+                        <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ลิงก์ที่สร้างทั้งหมด</h4>
+                        <div id="statTotalLinks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">0</div>
+                    </div>
+                    <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #10b981;">
+                        <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ลิงก์ที่สร้างวันนี้</h4>
+                        <div id="statTodayLinks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">0</div>
+                    </div>
+                    <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #f59e0b;">
+                        <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ยอดคนเข้าชมรวมทั้งหมด</h4>
+                        <div id="statTotalClicks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">0</div>
+                    </div>
+                    <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ec4899;">
+                        <h4 style="margin: 0 0 5px 0; color: #6b7280; font-size: 0.9rem; font-weight: 500;">ยอดคนเข้าชมวันนี้</h4>
+                        <div id="statTodayClicks" style="font-size: 1.8rem; font-weight: 700; color: #1f2937;">0</div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="history-table">
                     <thead>
