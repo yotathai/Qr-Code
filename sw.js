@@ -1,4 +1,4 @@
-const CACHE_NAME = 'th-go-cache-v11';
+const CACHE_NAME = 'th-go-cache-v12';
 const urlsToCache = [
   '/',
   '/index.html',
