@@ -266,6 +266,7 @@ qrBgColorInput.addEventListener('change', (e) => {
 
 // Clear result when input is empty
 longUrlInput.addEventListener('input', (e) => {
+    e.target.setCustomValidity(''); // Clear error state when typing
     if (e.target.value.trim() === '') {
         resultContainer.classList.add('hidden');
     }
@@ -446,7 +447,8 @@ removeLogoBtn.addEventListener('click', (e) => {
 generateBtn.addEventListener('click', async () => {
     const longUrl = longUrlInput.value.trim();
     if (!longUrl) {
-        alert("กรุณาระบุลิงก์ต้นทาง");
+        longUrlInput.setCustomValidity("กรุณาวางลิงก์ยาวของคุณที่นี่ก่อนครับ");
+        longUrlInput.reportValidity();
         return;
     }
     
