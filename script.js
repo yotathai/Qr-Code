@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -830,15 +830,7 @@ async function loadHistory() {
             todayClicks += (d[`clicks_${todayStr}`] || 0);
         });
         
-        // Update Dashboard UI
-        const dashboard = document.getElementById('userDashboard');
-        if (dashboard) {
-            dashboard.classList.remove('hidden');
-            document.getElementById('statTotalLinks').textContent = totalLinks.toLocaleString();
-            document.getElementById('statTodayLinks').textContent = todayLinks.toLocaleString();
-            document.getElementById('statTotalClicks').textContent = totalClicks.toLocaleString();
-            document.getElementById('statTodayClicks').textContent = todayClicks.toLocaleString();
-        }
+        // User dashboard logic removed per request
         
         // Sort descending by createdAt
         docs.sort((a, b) => {
@@ -1074,3 +1066,46 @@ if (closeIosModalBtn) {
         iosInstallModal.classList.add('hidden');
     });
 }
+
+// Load Global Stats
+async function loadGlobalStats() {
+    try {
+        const linksRef = collection(db, "shortlinks");
+        
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        
+        // 1. Total Links
+        const totalLinksSnap = await getCountFromServer(linksRef);
+        document.getElementById('globalStatTotalLinks').textContent = totalLinksSnap.data().count.toLocaleString();
+        
+        // 2. Today Links
+        const qTodayLinks = query(linksRef, where("createdAt", ">=", startOfToday));
+        const todayLinksSnap = await getCountFromServer(qTodayLinks);
+        document.getElementById('globalStatTodayLinks').textContent = todayLinksSnap.data().count.toLocaleString();
+        
+        // 3. Total Clicks
+        const totalClicksSnap = await getAggregateFromServer(linksRef, {
+            total: sum("clicks")
+        });
+        document.getElementById('globalStatTotalClicks').textContent = totalClicksSnap.data().total.toLocaleString();
+        
+        // 4. Today Clicks
+        const todayClicksSnap = await getAggregateFromServer(linksRef, {
+            today: sum(`clicks_${todayStr}`)
+        });
+        document.getElementById('globalStatTodayClicks').textContent = todayClicksSnap.data().today.toLocaleString();
+        
+    } catch (err) {
+        console.error("Error loading global stats:", err);
+    }
+}
+
+// Call on startup
+loadGlobalStats();
