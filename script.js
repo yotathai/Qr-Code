@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -137,6 +137,14 @@ onAuthStateChanged(auth, (user) => {
     
     if (user) {
         currentUser = user;
+        const userRef = doc(db, 'users', user.uid);
+        setDoc(userRef, {
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            lastLogin: new Date()
+        }, { merge: true }).catch(err => console.error("Error saving user:", err));
+        
         loginSection.classList.add('hidden');
         userProfile.classList.remove('hidden');
         userName.textContent = user.displayName;
@@ -1111,6 +1119,16 @@ async function loadGlobalStats() {
         
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
+        
+        // 0. Total Users
+        const usersRef = collection(db, "users");
+        try {
+            const totalUsersSnap = await getCountFromServer(usersRef);
+            document.getElementById('globalStatTotalUsers').textContent = totalUsersSnap.data().count.toLocaleString();
+        } catch (e) {
+            console.error("Error counting users (maybe missing rules):", e);
+            document.getElementById('globalStatTotalUsers').textContent = "-";
+        }
         
         // 1. Total Links
         const totalLinksSnap = await getCountFromServer(linksRef);
