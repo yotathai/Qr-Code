@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -682,6 +682,27 @@ async function loadHistory() {
                 alert("ไม่สามารถลบได้: " + err.message);
             }
         };
+
+        window.editHistory = async function(id, currentUrl) {
+            const newUrl = prompt("กรุณากรอกลิงก์ปลายทางใหม่ (URL):", currentUrl);
+            if (newUrl !== null && newUrl.trim() !== "" && newUrl !== currentUrl) {
+                try {
+                    // Basic URL validation
+                    new URL(newUrl);
+                    await updateDoc(doc(db, "shortlinks", id), {
+                        originalUrl: newUrl.trim()
+                    });
+                    loadHistory();
+                } catch (err) {
+                    if (err instanceof TypeError) {
+                        alert("รูปแบบลิงก์ไม่ถูกต้อง กรุณาขึ้นต้นด้วย http:// หรือ https://");
+                    } else {
+                        console.error("Edit Error:", err);
+                        alert("ไม่สามารถแก้ไขได้: " + err.message);
+                    }
+                }
+            }
+        };
         
         window.downloadHistoryQR = async function(urlToEncode) {
             try {
@@ -736,6 +757,9 @@ async function loadHistory() {
                     <div style="display: flex; gap: 4px; justify-content: flex-start; align-items: center;">
                         <button onclick="downloadHistoryQR('${targetUrl}')" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
                             QR
+                        </button>
+                        <button onclick="editHistory('${data.id}', '${data.originalUrl}')" style="background:#eab308; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
+                            แก้ไข
                         </button>
                         <button onclick="deleteHistory('${data.id}')" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.8rem; cursor:pointer;">
                             ลบ
