@@ -624,6 +624,10 @@ async function generateQR(url, darkColor, lightColor, logoDataUrl, qrText = "") 
             // Resize actual canvas
             qrCanvas.height = qrCanvas.height + extraHeight;
             
+            // Fix CSS distortion
+            qrCanvas.style.width = qrCanvas.width + "px";
+            qrCanvas.style.height = qrCanvas.height + "px";
+            
             // Fill new background
             ctx.fillStyle = lightColor;
             ctx.fillRect(0, 0, qrCanvas.width, qrCanvas.height);
