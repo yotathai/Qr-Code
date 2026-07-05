@@ -57,6 +57,12 @@
                 <button class="theme-circle" data-theme="dark-green" style="background: #0f172a; border: 2px solid #34d399;" title="มืด-เขียว"></button>
                 <button class="theme-circle" data-theme="dark-purple" style="background: #0f172a; border: 2px solid #a78bfa;" title="มืด-ม่วง"></button>
             </div>
+            
+            <!-- Install App Button (Hidden by default, shown via JS if applicable) -->
+            <button id="installAppBtn" class="btn-install hidden">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                ติดตั้งแอป
+            </button>
 
             <div class="nav-auth">
                 <!-- Loading State -->
@@ -213,6 +219,22 @@
             </div>
         </section>
     </main>
+
+    <!-- iOS Install Instructions Modal -->
+    <div id="iosInstallModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">ติดตั้งแอปลง iPhone/iPad</h3>
+            <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 0.95rem;">
+                ระบบของ Apple ไม่อนุญาตให้ติดตั้งอัตโนมัติ กรุณาทำตาม 2 ขั้นตอนนี้:
+            </p>
+            <ol style="text-align: left; margin-bottom: 20px; color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
+                <li>แตะที่ไอคอน <b>แชร์ (Share)</b> <svg style="vertical-align: middle; margin: 0 5px;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="15" width="18" height="6" rx="2" ry="2"></rect><path d="M12 15V3m0 0 4 4m-4-4-4 4"></path></svg> ตรงขอบจอด้านล่าง (หรือมุมขวาบนใน iPad)</li>
+                <li style="margin-top: 10px;">เลื่อนลงมาแล้วเลือก <b>"เพิ่มไปยังหน้าจอโฮม" (Add to Home Screen)</b> <svg style="vertical-align: middle; margin: 0 5px;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></li>
+            </ol>
+            <p style="color: #ef4444; font-size: 0.85rem; margin-bottom: 20px; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px;">*หมายเหตุ: ต้องเปิดเว็บนี้ผ่านเบราว์เซอร์ <b>Safari</b> เท่านั้น</p>
+            <button id="closeIosModalBtn" class="btn-primary" style="width: 100%;">เข้าใจแล้ว</button>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer style="text-align: center; padding: 20px; color: var(--text-light); font-size: 0.9rem; margin-top: 20px;">

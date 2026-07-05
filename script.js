@@ -757,3 +757,75 @@ async function loadHistory() {
         qrLogoInput.value = '';
     }
 }
+// ==========================================
+// PWA Installation Logic (Android & iOS)
+// ==========================================
+let deferredPrompt;
+const installAppBtn = document.getElementById('installAppBtn');
+const iosInstallModal = document.getElementById('iosInstallModal');
+const closeIosModalBtn = document.getElementById('closeIosModalBtn');
+
+// Detect if device is iOS
+const isIOS = () => {
+  return [
+    'iPad Simulator',
+    'iPhone Simulator',
+    'iPod Simulator',
+    'iPad',
+    'iPhone',
+    'iPod'
+  ].includes(navigator.platform)
+  // iPad on iOS 13 detection
+  || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+};
+
+// Detect if already installed / running in standalone
+const isStandalone = () => {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+};
+
+// Show the install button if not installed
+if (!isStandalone()) {
+    if (isIOS()) {
+        // Show button for iOS users always (since we can't intercept prompt)
+        if(installAppBtn) installAppBtn.classList.remove('hidden');
+    }
+}
+
+// Intercept Android install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    e.preventDefault();
+    // Stash the event so it can be triggered later.
+    deferredPrompt = e;
+    // Update UI to notify the user they can add to home screen
+    if(installAppBtn) installAppBtn.classList.remove('hidden');
+});
+
+// Handle Install Button Click
+if (installAppBtn) {
+    installAppBtn.addEventListener('click', async () => {
+        if (isIOS()) {
+            // Show iOS instructions modal
+            iosInstallModal.classList.remove('hidden');
+        } else if (deferredPrompt) {
+            // Show Android native install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installAppBtn.classList.add('hidden');
+            }
+            deferredPrompt = null;
+        } else {
+            alert('เบราว์เซอร์ของคุณอาจไม่รองรับการติดตั้งแอปอัตโนมัติ หรือคุณได้ติดตั้งไปแล้วครับ');
+        }
+    });
+}
+
+// Close iOS Modal
+if (closeIosModalBtn) {
+    closeIosModalBtn.addEventListener('click', () => {
+        iosInstallModal.classList.add('hidden');
+    });
+}
