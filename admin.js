@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, query, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, getDocs, orderBy, deleteDoc, doc, updateDoc, writeBatch, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -160,12 +160,17 @@ function renderUserTable() {
         }
         
         const tr = document.createElement('tr');
+        if (user.banned) {
+            tr.style.opacity = '0.5';
+            tr.style.background = '#fee2e2';
+        }
+        
         tr.innerHTML = `
             <td style="text-align: center;">
                 <img src="${user.photoURL || 'icon-192.png'}" class="admin-avatar" alt="Avatar">
             </td>
             <td>
-                <div style="font-weight: 500; color: #111827;">${user.displayName || 'Unknown'}</div>
+                <div style="font-weight: 500; color: #111827;">${user.displayName || 'Unknown'} ${user.banned ? '<span style="color:red; font-size: 0.8rem;">(BANNED)</span>' : ''}</div>
                 <div style="color: #6b7280; font-size: 0.85rem;">${user.email || '-'}</div>
             </td>
             <td style="text-align: center; font-weight: 600; color: var(--primary);">
@@ -174,8 +179,59 @@ function renderUserTable() {
             <td style="color: #6b7280; font-size: 0.9rem;">
                 ${lastLoginStr}
             </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 5px; justify-content: center;">
+                    ${user.banned ? '' : `<button class="admin-btn btn-ban" data-uid="${user.id}" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;">แบน</button>`}
+                    <button class="admin-btn btn-delete-all" data-uid="${user.id}" style="color: #b91c1c; border-color: #f87171; background: #fff;">ลบลิงก์</button>
+                </div>
+            </td>
         `;
         adminUsersList.appendChild(tr);
+    });
+    
+    // Attach Event Listeners for User Actions
+    document.querySelectorAll('.btn-ban').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const uid = e.target.getAttribute('data-uid');
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการระงับการใช้งาน (แบน) ผู้ใช้งานรายนี้?")) {
+                try {
+                    await updateDoc(doc(db, "users", uid), { banned: true });
+                    alert("แบนผู้ใช้งานเรียบร้อยแล้ว");
+                    window.location.reload();
+                } catch(err) {
+                    console.error(err);
+                    alert("เกิดข้อผิดพลาดในการแบนผู้ใช้งาน");
+                }
+            }
+        });
+    });
+    
+    document.querySelectorAll('.btn-delete-all').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const uid = e.target.getAttribute('data-uid');
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบ 'ลิงก์ทั้งหมด' ที่ผู้ใช้งานรายนี้สร้าง? (ไม่สามารถกู้คืนได้)")) {
+                try {
+                    const q = query(collection(db, "shortlinks"), where("uid", "==", uid));
+                    const snapshot = await getDocs(q);
+                    if (snapshot.empty) {
+                        alert("ผู้ใช้นี้ยังไม่มีลิงก์");
+                        return;
+                    }
+                    
+                    const batch = writeBatch(db);
+                    snapshot.forEach(d => {
+                        batch.delete(d.ref);
+                    });
+                    
+                    await batch.commit();
+                    alert(`ลบลิงก์ทั้งหมด ${snapshot.size} รายการ เรียบร้อยแล้ว`);
+                    window.location.reload();
+                } catch(err) {
+                    console.error(err);
+                    alert("เกิดข้อผิดพลาดในการลบลิงก์");
+                }
+            }
+        });
     });
 }
 
@@ -206,12 +262,37 @@ function renderRecentActivity() {
         div.innerHTML = `
             <img src="${user.photoURL}" class="activity-avatar" alt="Avatar" onerror="this.src='icon-192.png'">
             <div class="activity-content">
-                <p class="activity-title"><strong>${user.displayName}</strong> ${typeBadge}</p>
-                <a href="https://th-go.link/${link.id}" target="_blank" style="color: var(--primary); font-size: 0.85rem; text-decoration: none;">th-go.link/${link.id}</a>
+                <p class="activity-title" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <span><strong>${user.displayName}</strong> ${typeBadge}</span>
+                    <button class="admin-btn btn-delete-link" data-id="${link.id}" style="padding: 2px 6px; font-size: 0.75rem; color: #b91c1c; border-color: #f87171; background: #fff;" title="ลบลิงก์นี้">🗑️ ลบ</button>
+                </p>
+                <div style="margin: 5px 0;">
+                    <a href="https://th-go.link/${link.id}" target="_blank" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">th-go.link/${link.id}</a>
+                    <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">
+                        🎯 ปลายทาง: <a href="${link.originalUrl}" target="_blank" style="color: #6b7280;">${link.originalUrl}</a>
+                    </div>
+                </div>
                 <p class="activity-time">${timeStr}</p>
             </div>
         `;
         recentActivityList.appendChild(div);
+    });
+    
+    // Attach Event Listeners for Link Delete
+    document.querySelectorAll('.btn-delete-link').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบลิงก์นี้? (ไม่สามารถกู้คืนได้)")) {
+                try {
+                    await deleteDoc(doc(db, "shortlinks", id));
+                    alert("ลบลิงก์เรียบร้อยแล้ว");
+                    window.location.reload();
+                } catch(err) {
+                    console.error(err);
+                    alert("เกิดข้อผิดพลาดในการลบลิงก์");
+                }
+            }
+        });
     });
 }
 

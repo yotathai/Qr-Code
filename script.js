@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -132,12 +132,26 @@ function updateGenerateBtnText() {
 }
 
 // Auth State Observer
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     authLoader.classList.add('hidden');
     
     if (user) {
-        currentUser = user;
         const userRef = doc(db, 'users', user.uid);
+        
+        // Fetch user to check ban status first
+        try {
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists() && userSnap.data().banned === true) {
+                alert("บัญชีของคุณถูกระงับการใช้งานเนื่องจากละเมิดข้อตกลงครับ");
+                await signOut(auth);
+                window.location.reload();
+                return;
+            }
+        } catch(e) {
+            console.error("Error checking user status:", e);
+        }
+
+        currentUser = user;
         setDoc(userRef, {
             email: user.email,
             displayName: user.displayName,
