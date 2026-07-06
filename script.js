@@ -544,9 +544,31 @@ generateBtn.addEventListener('click', async () => {
                 'terms', 'privacy', 'policy', 'faq', 'stats', 'analytics',
                 // Yotathai Brand Protection
                 'yotathai', 'yota', 'changtheuk', 'changtuk', 'aphisit', 'apisit',
-                // Country & Locations
-                'thai', 'thailand', 'siam', 'bangkok', 'bkk', 'chiangmai', 'phuket', 'pattaya',
-                'ไทย', 'ประเทศไทย', 'กรุงเทพ', 'เชียงใหม่', 'ภูเก็ต', 'พัทยา'
+                // Country
+                'thai', 'thailand', 'siam', 'ไทย', 'ประเทศไทย',
+                // All 77 Provinces (English)
+                'bangkok', 'bkk', 'krabi', 'kanchanaburi', 'kalasin', 'kamphaengphet', 'khonkaen', 'chanthaburi', 'chachoengsao', 'chonburi', 
+                'chainat', 'chaiyaphum', 'chumphon', 'chiangrai', 'chiangmai', 'trang', 'trat', 'tak', 'nakhonnayok', 'nakhonpathom', 
+                'nakhonphanom', 'nakhonratchasima', 'korat', 'nakhonsithammarat', 'nakhonsawan', 'nonthaburi', 'narathiwat', 'nan', 'buengkan', 
+                'buriram', 'pathumthani', 'prachuapkhirikhan', 'prachinburi', 'pattani', 'phranakhonsiayutthaya', 'ayutthaya', 'phayao', 
+                'phangnga', 'phatthalung', 'phichit', 'phitsanulok', 'phetchaburi', 'phetchabun', 'phrae', 'phuket', 'mahasarakham', 
+                'mukdahan', 'maehongson', 'yasothon', 'yala', 'roiet', 'ranong', 'rayong', 'ratchaburi', 'lopburi', 'lampang', 'lamphun', 
+                'loei', 'sisaket', 'sakonnakhon', 'songkhla', 'satun', 'samutprakan', 'samutsongkhram', 'samutsakhon', 'sakaeo', 'saraburi', 
+                'singburi', 'sukhothai', 'suphanburi', 'suratthani', 'surin', 'nongkhai', 'nongbualamphu', 'angthong', 'amnatcharoen', 
+                'udonthani', 'uttaradit', 'uthaithani', 'ubonratchathani',
+                // All 77 Provinces (Thai)
+                'กรุงเทพ', 'กรุงเทพมหานคร', 'กทม', 'กระบี่', 'กาญจนบุรี', 'กาฬสินธุ์', 'กำแพงเพชร', 'ขอนแก่น', 'จันทบุรี', 'ฉะเชิงเทรา', 'ชลบุรี', 
+                'ชัยนาท', 'ชัยภูมิ', 'ชุมพร', 'เชียงราย', 'เชียงใหม่', 'ตรัง', 'ตราด', 'ตาก', 'นครนายก', 'นครปฐม', 'นครพนม', 'นครราชสีมา', 'โคราช', 
+                'นครศรีธรรมราช', 'นครสวรรค์', 'นนทบุรี', 'นราธิวาส', 'น่าน', 'บึงกาฬ', 'บุรีรัมย์', 'ปทุมธานี', 'ประจวบคีรีขันธ์', 'ปราจีนบุรี', 
+                'ปัตตานี', 'พระนครศรีอยุธยา', 'อยุธยา', 'พะเยา', 'พังงา', 'พัทลุง', 'พิจิตร', 'พิษณุโลก', 'เพชรบุรี', 'เพชรบูรณ์', 'แพร่', 'ภูเก็ต', 
+                'มหาสารคาม', 'มุกดาหาร', 'แม่ฮ่องสอน', 'ยโสธร', 'ยะลา', 'ร้อยเอ็ด', 'ระนอง', 'ระยอง', 'ราชบุรี', 'ลพบุรี', 'ลำปาง', 'ลำพูน', 
+                'เลย', 'ศรีสะเกษ', 'สกลนคร', 'สงขลา', 'สตูล', 'สมุทรปราการ', 'สมุทรสงคราม', 'สมุทรสาคร', 'สระแก้ว', 'สระบุรี', 'สิงห์บุรี', 
+                'สุโขทัย', 'สุพรรณบุรี', 'สุราษฎร์ธานี', 'สุรินทร์', 'หนองคาย', 'หนองบัวลำภู', 'อ่างทอง', 'อำนาจเจริญ', 'อุดรธานี', 'อุตรดิตถ์', 
+                'อุทัยธานี', 'อุบลราชธานี',
+                // Major Districts (English & Thai)
+                'hatyai', 'หาดใหญ่', 'chiangkhan', 'เชียงคาน', 'huahin', 'หัวหิน', 'maesot', 'แม่สอด', 'betong', 'เบตง', 'pattaya', 'พัทยา', 
+                'pai', 'ปาย', 'kohsamui', 'samui', 'เกาะสมุย', 'สมุย', 'kohphangan', 'phangan', 'เกาะพะงัน', 'พะงัน', 'sriracha', 'ศรีราชา', 
+                'banglamung', 'บางละมุง'
             ];
             
             // Check exact match for reserved words
