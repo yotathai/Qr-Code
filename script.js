@@ -543,7 +543,7 @@ generateBtn.addEventListener('click', async () => {
                 'signup', 'signin', 'password', 'support', 'help', 'contact', 'about', 
                 'terms', 'privacy', 'policy', 'faq', 'stats', 'analytics',
                 // Yotathai Brand Protection
-                'yotathai', 'yota', 'changtheuk', 'changtuk', 'apisit'
+                'yotathai', 'yota', 'changtheuk', 'changtuk', 'aphisit'
             ];
             
             // Check exact match for reserved words
