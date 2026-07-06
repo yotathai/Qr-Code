@@ -1,0 +1,69 @@
+/* admin.css */
+.security-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #f3f4f6;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    transition: opacity 0.3s ease;
+}
+
+.security-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.admin-table th {
+    background: #f9fafb;
+    color: #374151;
+    font-weight: 600;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.admin-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+    vertical-align: middle;
+}
+
+.admin-table tr:hover {
+    background-color: #f9fafb;
+}
+
+.admin-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+}
+
+.admin-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.admin-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+}

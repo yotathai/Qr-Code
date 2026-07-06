@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบหลังบ้าน (Admin) - th-go.link</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body data-theme="light-orange" style="background-color: #f3f4f6;">
+    
+    <!-- Security Overlay (Blocks view until verified) -->
+    <div id="securityOverlay" class="security-overlay">
+        <div class="loader">กำลังตรวจสอบสิทธิ์ Admin...</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar" style="background: #1f2937; border-bottom: none;">
+        <div class="logo">
+            <span class="logo-text" style="color: white;">th-go.link <span style="color: #f59e0b; font-size: 0.8em;">(ADMIN)</span></span>
+        </div>
+        <div class="nav-right">
+            <div id="userProfile" class="user-profile hidden">
+                <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                <div class="user-info">
+                    <span id="userName" class="user-name" style="color: white;"></span>
+                    <button id="logoutBtn" class="btn-logout" style="color: #fca5a5; border-color: #fca5a5;">ออกจากระบบ</button>
+                </div>
+            </div>
+            <a href="/" class="btn-login" style="margin-left: 15px; text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">กลับหน้าหลัก</a>
+        </div>
+    </nav>
+
+    <main class="main-container admin-container" style="max-width: 1000px; margin-top: 40px;">
+        
+        <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <h1 style="color: #111827; margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.5rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                ระบบจัดการผู้ใช้งาน (User Management)
+            </h1>
+            <div class="admin-stats" style="display: flex; gap: 10px;">
+                <div class="stat-badge" style="background: #e0e7ff; color: #4338ca; padding: 8px 15px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
+                    ผู้ใช้ทั้งหมด <span id="totalUsersStat">0</span> คน
+                </div>
+                <div class="stat-badge stat-links" style="background: #d1fae5; color: #047857; padding: 8px 15px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
+                    ลิงก์ทั้งหมด <span id="totalLinksStat">0</span> ลิงก์
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card" style="padding: 0; overflow: hidden; margin-top: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="table-responsive">
+                <table class="history-table admin-table" style="margin: 0; width: 100%;">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th style="padding: 15px 20px; text-align: center; width: 60px;">โปรไฟล์</th>
+                            <th style="padding: 15px 20px; text-align: left;">ชื่อ (DisplayName)</th>
+                            <th style="padding: 15px 20px; text-align: left;">อีเมล</th>
+                            <th style="padding: 15px 20px; text-align: center;">สร้างลิงก์ (อัน)</th>
+                            <th style="padding: 15px 20px; text-align: left;">เข้าใช้งานล่าสุด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersList">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">กำลังโหลดข้อมูล...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

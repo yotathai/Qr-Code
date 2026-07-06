@@ -1,8 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Admin Function
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'yotathai@gmail.com';
+    }
+
+    match /users/{userId} {
+      // User can read/write their own info, Admin can read all
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /user_logos/{logoId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null;
+    }
+
     match /shortlinks/{document} {
       // 1. อ่านได้ทุกคน (จำเป็นสำหรับการทำ Redirect ในหน้า 404.html)
+      // หรือถ้าเป็น Admin ให้อ่านได้แบบ List/Query ได้อย่างอิสระ
       allow read: if true;
       
       // 2. สร้างใหม่ได้เฉพาะคนที่ล็อกอินแล้วเท่านั้น
@@ -12,8 +29,8 @@ service cloud.firestore {
       allow update: if (request.auth != null && request.auth.uid == resource.data.uid) 
                     || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clicks']));
       
-      // 4. ลบได้เฉพาะคนที่ล็อกอินและเป็นเจ้าของลิงก์เท่านั้น
-      allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      // 4. ลบได้เฉพาะคนที่ล็อกอินและเป็นเจ้าของลิงก์เท่านั้น หรือ Admin
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.uid || isAdmin());
     }
   }
 }

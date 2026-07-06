@@ -150,6 +150,16 @@ onAuthStateChanged(auth, (user) => {
         userName.textContent = user.displayName;
         userAvatar.src = user.photoURL;
         
+        // Admin Dashboard Check
+        const adminBtn = document.getElementById('adminDashboardBtn');
+        if (adminBtn) {
+            if (user.email === 'yotathai@gmail.com') {
+                adminBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
+            }
+        }
+        
         authRequiredBanner.classList.add('hidden');
         
         // Enable inputs
