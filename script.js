@@ -534,10 +534,29 @@ generateBtn.addEventListener('click', async () => {
                 return;
             }
             
-            // Prevent using system reserved words
-            const reservedAliases = ['admin', 'api', 'login', 'logout', 'dashboard', 'auth', 'search', 'index', 'home', 'users', 'history'];
+            // Prevent using system reserved words and brand impersonation
+            const reservedAliases = [
+                // System & Admin
+                'admin', 'administrator', 'api', 'login', 'logout', 'dashboard', 'auth', 
+                'search', 'index', 'home', 'users', 'history', 'root', 'sysadmin', 
+                'system', 'app', 'config', 'settings', 'profile', 'account', 'register', 
+                'signup', 'signin', 'password', 'support', 'help', 'contact', 'about', 
+                'terms', 'privacy', 'policy', 'faq', 'stats', 'analytics',
+                // Yotathai Brand Protection
+                'yotathai', 'yota', 'changtheuk', 'changtuk', 'apisit'
+            ];
+            
+            // Check exact match for reserved words
             if (reservedAliases.includes(aliasToUse.toLowerCase())) {
-                alert(`ไม่อนุญาตให้ใช้ชื่อลิงก์ "${aliasToUse}" เนื่องจากเป็นคำสงวนของระบบครับ`);
+                alert(`ไม่อนุญาตให้ใช้ชื่อลิงก์ "${aliasToUse}" เนื่องจากเป็นคำสงวนของระบบหรือแบรนด์ครับ`);
+                generateBtn.disabled = false;
+                updateGenerateBtnText();
+                return;
+            }
+            
+            // Check partial match for "yotathai" to prevent variations like "yotathai-admin"
+            if (aliasToUse.toLowerCase().includes('yotathai') && currentUser.email !== 'yotathai@gmail.com') {
+                alert(`ไม่อนุญาตให้บุคคลทั่วไปใช้ชื่อลิงก์ที่มีคำว่า "yotathai" เพื่อป้องกันการแอบอ้างครับ`);
                 generateBtn.disabled = false;
                 updateGenerateBtnText();
                 return;
