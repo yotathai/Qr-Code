@@ -135,7 +135,7 @@ async function loadAdminDashboard() {
     }
 }
 
-function renderUserTable() {
+function renderUserTable(searchTerm = "") {
     adminUsersList.innerHTML = '';
     
     // Count links per user
@@ -146,12 +146,20 @@ function renderUserTable() {
         }
     });
     
-    if (globalUsersData.length === 0) {
-        adminUsersList.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">ยังไม่มีผู้ใช้งาน</td></tr>';
+    // Filter users
+    const filteredUsers = globalUsersData.filter(user => {
+        const term = searchTerm.toLowerCase();
+        const nameMatch = user.displayName ? user.displayName.toLowerCase().includes(term) : false;
+        const emailMatch = user.email ? user.email.toLowerCase().includes(term) : false;
+        return nameMatch || emailMatch;
+    });
+    
+    if (filteredUsers.length === 0) {
+        adminUsersList.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">ไม่พบผู้ใช้งาน</td></tr>';
         return;
     }
     
-    globalUsersData.forEach(user => {
+    filteredUsers.forEach(user => {
         const count = linkCounts[user.id] || 0;
         let lastLoginStr = "-";
         if (user.lastLogin) {
@@ -181,8 +189,9 @@ function renderUserTable() {
             </td>
             <td style="text-align: center;">
                 <div style="display: flex; gap: 5px; justify-content: center;">
-                    ${user.banned ? '' : `<button class="admin-btn btn-ban" data-uid="${user.id}" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;">แบน</button>`}
-                    <button class="admin-btn btn-delete-all" data-uid="${user.id}" style="color: #b91c1c; border-color: #f87171; background: #fff;">ลบลิงก์</button>
+                    <button class="admin-btn btn-view-links" data-uid="${user.id}" data-name="${user.displayName}" style="color: #0369a1; border-color: #7dd3fc; background: #f0f9ff;" title="ดูประวัติลิงก์">🔍 ดู</button>
+                    ${user.banned ? '' : `<button class="admin-btn btn-ban" data-uid="${user.id}" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;" title="แบนผู้ใช้นี้">🚫 แบน</button>`}
+                    <button class="admin-btn btn-delete-all" data-uid="${user.id}" style="color: #b91c1c; border-color: #f87171; background: #fff;" title="ลบลิงก์ทั้งหมด">🗑️ ลบ</button>
                 </div>
             </td>
         `;
@@ -190,6 +199,14 @@ function renderUserTable() {
     });
     
     // Attach Event Listeners for User Actions
+    document.querySelectorAll('.btn-view-links').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const uid = e.target.getAttribute('data-uid');
+            const name = e.target.getAttribute('data-name');
+            openUserDetailsModal(uid, name);
+        });
+    });
+
     document.querySelectorAll('.btn-ban').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const uid = e.target.getAttribute('data-uid');
@@ -232,6 +249,96 @@ function renderUserTable() {
                 }
             }
         });
+    });
+}
+
+// Search Functionality
+const searchInput = document.getElementById('userSearchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        renderUserTable(e.target.value);
+    });
+}
+
+// Modal Logic
+const modal = document.getElementById('userDetailsModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const modalUserLinksList = document.getElementById('modalUserLinksList');
+const modalUserName = document.getElementById('modalUserName');
+
+function openUserDetailsModal(uid, name) {
+    modalUserName.textContent = `ประวัติการสร้างลิงก์ของ: ${name || 'Unknown'}`;
+    modalUserLinksList.innerHTML = '';
+    
+    const userLinks = globalLinksData.filter(link => link.uid === uid);
+    
+    if (userLinks.length === 0) {
+        modalUserLinksList.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">ยังไม่มีประวัติการสร้างลิงก์</td></tr>';
+    } else {
+        // Sort descending by date
+        userLinks.sort((a, b) => b.dateObj - a.dateObj);
+        
+        userLinks.forEach(link => {
+            const d = link.dateObj;
+            const timeStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+            
+            let typeBadge = '';
+            if (link.mode === 'shortlink') typeBadge = '🔗 ลิงก์ย่อ';
+            else if (link.mode === 'qr') typeBadge = '📱 คิวอาร์';
+            else typeBadge = '🔥 ลิงก์+คิวอาร์';
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-size: 0.85rem; color: #6b7280;">${timeStr}</td>
+                <td style="font-size: 0.85rem;">${typeBadge}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem;">
+                    <a href="${link.originalUrl}" target="_blank" style="color: #6b7280;">${link.originalUrl}</a>
+                </td>
+                <td style="font-size: 0.85rem;">
+                    <a href="https://th-go.link/${link.id}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">/${link.id}</a>
+                </td>
+                <td style="text-align: center; font-size: 0.9rem; font-weight: 500;">${link.clicks || 0}</td>
+                <td style="text-align: center;">
+                    <button class="admin-btn btn-delete-single-link" data-id="${link.id}" style="padding: 2px 6px; font-size: 0.75rem; color: #b91c1c; border-color: #f87171; background: #fff;" title="ลบลิงก์นี้">ลบ</button>
+                </td>
+            `;
+            modalUserLinksList.appendChild(tr);
+        });
+        
+        // Attach delete to these buttons
+        modalUserLinksList.querySelectorAll('.btn-delete-single-link').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.target.getAttribute('data-id');
+                if (confirm("ลบลิงก์นี้ใช่หรือไม่?")) {
+                    try {
+                        await deleteDoc(doc(db, "shortlinks", id));
+                        e.target.closest('tr').remove();
+                        // Optional: update global data
+                        globalLinksData = globalLinksData.filter(l => l.id !== id);
+                        renderUserTable(searchInput.value);
+                        renderRecentActivity();
+                    } catch (err) {
+                        console.error(err);
+                        alert("เกิดข้อผิดพลาด");
+                    }
+                }
+            });
+        });
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+}
+if (modal) {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
     });
 }
 

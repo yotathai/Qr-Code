@@ -112,8 +112,9 @@
         <!-- Bottom Section: Users & Activity -->
         <div class="bottom-grid">
             <div class="dashboard-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-                <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; background: white;">
+                <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; background: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0; color: #111827;">👥 รายชื่อผู้ใช้งานทั้งหมด</h3>
+                    <input type="text" id="userSearchInput" class="admin-search-input" placeholder="🔍 ค้นหาชื่อ หรือ อีเมล..." autocomplete="off">
                 </div>
                 <div class="table-responsive" style="flex: 1; max-height: 500px; overflow-y: auto;">
                     <table class="history-table admin-table" style="margin: 0; width: 100%;">
@@ -143,6 +144,37 @@
 
     </main>
 
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="admin-modal hidden">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3 id="modalUserName" style="margin: 0;">ประวัติการสร้างลิงก์</h3>
+                <button id="closeModalBtn" class="close-modal-btn">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                    <table class="history-table admin-table" style="width: 100%;">
+                        <thead style="background: #f9fafb; position: sticky; top: 0; z-index: 10;">
+                            <tr>
+                                <th style="padding: 10px; text-align: left;">วันที่สร้าง</th>
+                                <th style="padding: 10px; text-align: left;">โหมด</th>
+                                <th style="padding: 10px; text-align: left;">ลิงก์ปลายทาง (Original)</th>
+                                <th style="padding: 10px; text-align: left;">ลิงก์ย่อ (Short)</th>
+                                <th style="padding: 10px; text-align: center;">คลิก</th>
+                                <th style="padding: 10px; text-align: center;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalUserLinksList">
+                            <!-- Links will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="admin.js"></script>
