@@ -561,6 +561,20 @@ generateBtn.addEventListener('click', async () => {
                 updateGenerateBtnText();
                 return;
             }
+            
+            // Prevent using profanity / inappropriate words
+            const profanityKeywords = [
+                'fuck', 'shit', 'bitch', 'cunt', 'dick', 'pussy', 'porn', 'xxx', 'sex', 'asshole',
+                'hee', 'hia', 'kuy', 'sud', 'here',
+                'ควย', 'หี', 'เย็ด', 'สัส', 'เหี้ย', 'พ่อง', 'แม่ง', 'ส้นตีน'
+            ];
+            const isProfane = profanityKeywords.some(keyword => aliasToUse.toLowerCase().includes(keyword));
+            if (isProfane) {
+                alert(`ไม่อนุญาตให้ใช้คำที่ไม่เหมาะสมในชื่อลิงก์ครับ`);
+                generateBtn.disabled = false;
+                updateGenerateBtnText();
+                return;
+            }
         }
         
         // Check alias availability
