@@ -543,7 +543,10 @@ generateBtn.addEventListener('click', async () => {
                 'signup', 'signin', 'password', 'support', 'help', 'contact', 'about', 
                 'terms', 'privacy', 'policy', 'faq', 'stats', 'analytics',
                 // Yotathai Brand Protection
-                'yotathai', 'yota', 'changtheuk', 'changtuk', 'aphisit'
+                'yotathai', 'yota', 'changtheuk', 'changtuk', 'aphisit', 'apisit',
+                // Country & Locations
+                'thai', 'thailand', 'siam', 'bangkok', 'bkk', 'chiangmai', 'phuket', 'pattaya',
+                'ไทย', 'ประเทศไทย', 'กรุงเทพ', 'เชียงใหม่', 'ภูเก็ต', 'พัทยา'
             ];
             
             // Check exact match for reserved words
