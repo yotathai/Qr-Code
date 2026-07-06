@@ -19,18 +19,191 @@
     pointer-events: none;
 }
 
+/* Header & Filters */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.time-filters {
+    display: flex;
+    background: white;
+    padding: 4px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filter-btn {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: #f3f4f6;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.kpi-info h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.kpi-info p {
+    margin: 5px 0 0 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* Charts */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.chart-card h3 {
+    margin-top: 0;
+    color: #111827;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Bottom Grid */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.activity-feed {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #111827;
+}
+
+.activity-title strong {
+    font-weight: 600;
+}
+
+.activity-time {
+    margin: 4px 0 0 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+/* Table styles */
 .admin-table th {
     background: #f9fafb;
     color: #374151;
     font-weight: 600;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .admin-table td {
-    padding: 15px 20px;
+    padding: 15px;
     border-bottom: 1px solid #e5e7eb;
     color: #4b5563;
     vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
 }
 
 .admin-table tr:hover {
@@ -45,25 +218,30 @@
     border: 1px solid #e5e7eb;
 }
 
-.admin-btn {
-    background: white;
-    border: 1px solid #d1d5db;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    color: #374151;
-    transition: all 0.2s;
+/* Scrollbar styling for containers */
+.table-responsive::-webkit-scrollbar,
+.activity-feed::-webkit-scrollbar {
+    width: 6px;
+}
+.table-responsive::-webkit-scrollbar-track,
+.activity-feed::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+.table-responsive::-webkit-scrollbar-thumb,
+.activity-feed::-webkit-scrollbar-thumb {
+    background: #c1c1c1; 
+    border-radius: 10px;
 }
 
-.admin-btn:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
+@media (max-width: 1024px) {
+    .charts-grid, .bottom-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 768px) {
     .admin-header {
         flex-direction: column;
-        align-items: flex-start !important;
+        align-items: flex-start;
     }
 }
