@@ -533,6 +533,15 @@ generateBtn.addEventListener('click', async () => {
                 updateGenerateBtnText();
                 return;
             }
+            
+            // Prevent using system reserved words
+            const reservedAliases = ['admin', 'api', 'login', 'logout', 'dashboard', 'auth', 'search', 'index', 'home', 'users', 'history'];
+            if (reservedAliases.includes(aliasToUse.toLowerCase())) {
+                alert(`ไม่อนุญาตให้ใช้ชื่อลิงก์ "${aliasToUse}" เนื่องจากเป็นคำสงวนของระบบครับ`);
+                generateBtn.disabled = false;
+                updateGenerateBtnText();
+                return;
+            }
         }
         
         // Check alias availability
