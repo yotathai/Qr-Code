@@ -295,7 +295,7 @@ function openUserDetailsModal(uid, name) {
                     <a href="${link.originalUrl}" target="_blank" style="color: #6b7280;">${link.originalUrl}</a>
                 </td>
                 <td style="font-size: 0.85rem;">
-                    <a href="https://th-go.link/${link.id}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">/${link.id}</a>
+                    <a href="https://th-go.link/${link.alias}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">/${link.alias}</a>
                 </td>
                 <td style="text-align: center; font-size: 0.9rem; font-weight: 500;">${link.clicks || 0}</td>
                 <td style="text-align: center;">
@@ -374,7 +374,7 @@ function renderRecentActivity() {
                     <button class="admin-btn btn-delete-link" data-id="${link.id}" style="padding: 2px 6px; font-size: 0.75rem; color: #b91c1c; border-color: #f87171; background: #fff;" title="ลบลิงก์นี้">🗑️ ลบ</button>
                 </p>
                 <div style="margin: 5px 0;">
-                    <a href="https://th-go.link/${link.id}" target="_blank" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">th-go.link/${link.id}</a>
+                    <a href="https://th-go.link/${link.alias}" target="_blank" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">th-go.link/${link.alias}</a>
                     <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">
                         🎯 ปลายทาง: <a href="${link.originalUrl}" target="_blank" style="color: #6b7280;">${link.originalUrl}</a>
                     </div>
