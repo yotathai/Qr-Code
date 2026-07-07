@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -45,6 +45,7 @@ const authPassword = document.getElementById('authPassword');
 const submitLoginBtn = document.getElementById('submitLoginBtn');
 const submitRegisterBtn = document.getElementById('submitRegisterBtn');
 const closeEmailAuthModal = document.getElementById('closeEmailAuthModal');
+const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
 const themeBtns = document.querySelectorAll('.theme-circle');
 themeBtns.forEach(btn => {
@@ -365,7 +366,12 @@ if (submitLoginBtn) {
         if (!email || !password) return alert("กรุณากรอกอีเมลและรหัสผ่าน");
         
         signInWithEmailAndPassword(auth, email, password)
-            .then(() => {
+            .then((userCred) => {
+                if (!userCred.user.emailVerified) {
+                    alert("กรุณายืนยันอีเมลของคุณก่อนเข้าใช้งาน (ลองเช็กในกล่องจดหมายหรือโฟลเดอร์จดหมายขยะ)");
+                    signOut(auth);
+                    return;
+                }
                 if (emailAuthModal) emailAuthModal.classList.add('hidden');
                 if (authEmail) authEmail.value = '';
                 if (authPassword) authPassword.value = '';
@@ -377,6 +383,23 @@ if (submitLoginBtn) {
     });
 }
 
+if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = authEmail.value.trim();
+        if (!email) return alert("กรุณากรอกอีเมลของคุณในช่องด้านบน เพื่อรับลิงก์รีเซ็ตรหัสผ่าน");
+        
+        sendPasswordResetEmail(auth, email)
+            .then(() => {
+                alert("ระบบได้ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ " + email + " แล้วครับ (หากไม่พบ กรุณาตรวจสอบใน Junk/Spam)");
+            })
+            .catch((error) => {
+                console.error("Password Reset Error:", error);
+                alert("ไม่สามารถส่งอีเมลได้: " + error.message);
+            });
+    });
+}
+
 if (submitRegisterBtn) {
     submitRegisterBtn.addEventListener('click', () => {
         const email = authEmail.value.trim();
@@ -384,11 +407,17 @@ if (submitRegisterBtn) {
         if (!email || !password) return alert("กรุณากรอกอีเมลและรหัสผ่าน");
         
         createUserWithEmailAndPassword(auth, email, password)
-            .then(() => {
+            .then((userCred) => {
+                sendEmailVerification(userCred.user)
+                    .then(() => {
+                        alert("สมัครสมาชิกสำเร็จ! กรุณาตรวจสอบอีเมลของคุณ (" + email + ") เพื่อกดยืนยันอีเมลก่อนเข้าสู่ระบบครับ");
+                    })
+                    .catch(err => console.error("Email verification error:", err));
+                
+                signOut(auth);
                 if (emailAuthModal) emailAuthModal.classList.add('hidden');
                 if (authEmail) authEmail.value = '';
                 if (authPassword) authPassword.value = '';
-                alert("สมัครสมาชิกสำเร็จและเข้าสู่ระบบเรียบร้อยแล้วครับ!");
             })
             .catch((error) => {
                 console.error(error);
