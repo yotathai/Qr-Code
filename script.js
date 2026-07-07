@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -16,6 +16,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+const fbProvider = new FacebookAuthProvider();
 
 let currentUser = null;
 let currentMode = 'shortlink'; // 'both', 'shortlink', 'qrcode'
@@ -45,6 +46,7 @@ const authPassword = document.getElementById('authPassword');
 const submitLoginBtn = document.getElementById('submitLoginBtn');
 const submitRegisterBtn = document.getElementById('submitRegisterBtn');
 const closeEmailAuthModal = document.getElementById('closeEmailAuthModal');
+const fbLoginBtn = document.getElementById('fbLoginBtn');
 
 const themeBtns = document.querySelectorAll('.theme-circle');
 themeBtns.forEach(btn => {
@@ -342,6 +344,19 @@ if (loginBtn) {
         signInWithPopup(auth, provider).catch(error => {
             console.error("Login Error:", error);
             alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google");
+        });
+    });
+}
+
+if (fbLoginBtn) {
+    fbLoginBtn.addEventListener('click', () => {
+        signInWithPopup(auth, fbProvider).catch(error => {
+            console.error("Facebook Login Error:", error);
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                alert("อีเมลนี้ผูกกับบัญชีอื่น (เช่น Google) ไปแล้ว กรุณาใช้วิธีล็อกอินเดิมครับ");
+            } else {
+                alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Facebook");
+            }
         });
     });
 }
