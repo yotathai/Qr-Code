@@ -191,7 +191,7 @@ function renderUserTable(searchTerm = "") {
                 <div style="display: flex; gap: 5px; justify-content: center;">
                     <button class="admin-btn btn-view-links" data-uid="${user.id}" data-name="${user.displayName}" style="color: #0369a1; border-color: #7dd3fc; background: #f0f9ff;" title="ดูประวัติลิงก์">🔍 ดู</button>
                     ${user.banned ? '' : `<button class="admin-btn btn-ban" data-uid="${user.id}" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;" title="แบนผู้ใช้นี้">🚫 แบน</button>`}
-                    <button class="admin-btn btn-delete-all" data-uid="${user.id}" style="color: #b91c1c; border-color: #f87171; background: #fff;" title="ลบลิงก์ทั้งหมด">🗑️ ลบ</button>
+                    <button class="admin-btn btn-delete-all" data-uid="${user.id}" style="color: #b91c1c; border-color: #f87171; background: #fff;" title="ลบลิงก์ทั้งหมด">🗑️ ลบลิงก์</button>
                 </div>
             </td>
         `;
