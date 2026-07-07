@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -38,6 +38,13 @@ const userName = document.getElementById('userName');
 const userAvatar = document.getElementById('userAvatar');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const emailLoginBtn = document.getElementById('emailLoginBtn');
+const emailAuthModal = document.getElementById('emailAuthModal');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const submitLoginBtn = document.getElementById('submitLoginBtn');
+const submitRegisterBtn = document.getElementById('submitRegisterBtn');
+const closeEmailAuthModal = document.getElementById('closeEmailAuthModal');
 
 const themeBtns = document.querySelectorAll('.theme-circle');
 themeBtns.forEach(btn => {
@@ -161,8 +168,8 @@ onAuthStateChanged(auth, async (user) => {
         
         loginSection.classList.add('hidden');
         userProfile.classList.remove('hidden');
-        userName.textContent = user.displayName;
-        userAvatar.src = user.photoURL;
+        userName.textContent = user.displayName || user.email.split('@')[0];
+        userAvatar.src = user.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
         
         // Admin Dashboard Check
         const adminBtn = document.getElementById('adminDashboardBtn');
@@ -329,16 +336,71 @@ longUrlInput.addEventListener('input', (e) => {
 });
 
 // Login / Logout
-loginBtn.addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch(error => {
-        console.error("Login Error:", error);
-        alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+        signInWithPopup(auth, provider).catch(error => {
+            console.error("Login Error:", error);
+            alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google");
+        });
     });
-});
+}
 
-logoutBtn.addEventListener('click', () => {
-    signOut(auth);
-});
+if (emailLoginBtn) {
+    emailLoginBtn.addEventListener('click', () => {
+        if (emailAuthModal) emailAuthModal.classList.remove('hidden');
+    });
+}
+
+if (closeEmailAuthModal) {
+    closeEmailAuthModal.addEventListener('click', () => {
+        emailAuthModal.classList.add('hidden');
+    });
+}
+
+if (submitLoginBtn) {
+    submitLoginBtn.addEventListener('click', () => {
+        const email = authEmail.value.trim();
+        const password = authPassword.value;
+        if (!email || !password) return alert("กรุณากรอกอีเมลและรหัสผ่าน");
+        
+        signInWithEmailAndPassword(auth, email, password)
+            .then(() => {
+                if (emailAuthModal) emailAuthModal.classList.add('hidden');
+                if (authEmail) authEmail.value = '';
+                if (authPassword) authPassword.value = '';
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+            });
+    });
+}
+
+if (submitRegisterBtn) {
+    submitRegisterBtn.addEventListener('click', () => {
+        const email = authEmail.value.trim();
+        const password = authPassword.value;
+        if (!email || !password) return alert("กรุณากรอกอีเมลและรหัสผ่าน");
+        
+        createUserWithEmailAndPassword(auth, email, password)
+            .then(() => {
+                if (emailAuthModal) emailAuthModal.classList.add('hidden');
+                if (authEmail) authEmail.value = '';
+                if (authPassword) authPassword.value = '';
+                alert("สมัครสมาชิกสำเร็จและเข้าสู่ระบบเรียบร้อยแล้วครับ!");
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("สมัครสมาชิกไม่สำเร็จ: " + error.message);
+            });
+    });
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth);
+    });
+}
 
 // Logo Gallery Logic
 async function fetchSavedLogos() {
