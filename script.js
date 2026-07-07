@@ -471,72 +471,7 @@ if (closeEmailAuthModal) {
     });
 }
 
-if (submitLoginBtn) {
-    submitLoginBtn.addEventListener('click', () => {
-        const email = authEmail.value.trim();
-        const password = authPassword.value;
-        if (!email || !password) return alert("กรุณากรอกอีเมลและรหัสผ่าน");
-        
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCred) => {
-                if (!userCred.user.emailVerified) {
-                    alert("กรุณายืนยันอีเมลของคุณก่อนเข้าใช้งาน (ลองเช็กในกล่องจดหมายหรือโฟลเดอร์จดหมายขยะ)");
-                    signOut(auth);
-                    return;
-                }
-                if (emailAuthModal) emailAuthModal.classList.add('hidden');
-                if (authEmail) authEmail.value = '';
-                if (authPassword) authPassword.value = '';
-            })
-            .catch((error) => {
-                console.error(error);
-                alert(getAuthErrorMessage(error.code));
-            });
-    });
-}
 
-if (forgotPasswordLink) {
-    forgotPasswordLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        const email = authEmail.value.trim();
-        if (!email) return alert("กรุณากรอกอีเมลของคุณในช่องด้านบน เพื่อรับลิงก์รีเซ็ตรหัสผ่าน");
-        
-        sendPasswordResetEmail(auth, email)
-            .then(() => {
-                alert("ระบบได้ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ " + email + " แล้วครับ (หากไม่พบ กรุณาตรวจสอบใน Junk/Spam)");
-            })
-            .catch((error) => {
-                console.error("Password Reset Error:", error);
-                alert(getAuthErrorMessage(error.code));
-            });
-    });
-}
-
-if (submitRegisterBtn) {
-    submitRegisterBtn.addEventListener('click', () => {
-        const email = authEmail.value.trim();
-        const password = authPassword.value;
-        if (!email || !password) return alert("กรุณากรอกอีเมลและรหัสผ่าน");
-        
-        createUserWithEmailAndPassword(auth, email, password)
-            .then((userCred) => {
-                sendEmailVerification(userCred.user)
-                    .then(() => {
-                        alert("สมัครสมาชิกสำเร็จ! กรุณาตรวจสอบอีเมลของคุณ (" + email + ") เพื่อกดยืนยันอีเมลก่อนเข้าสู่ระบบครับ");
-                    })
-                    .catch(err => console.error("Email verification error:", err));
-                
-                signOut(auth);
-                if (emailAuthModal) emailAuthModal.classList.add('hidden');
-                if (authEmail) authEmail.value = '';
-                if (authPassword) authPassword.value = '';
-            })
-            .catch((error) => {
-                console.error(error);
-                alert(getAuthErrorMessage(error.code));
-            });
-    });
-}
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
