@@ -184,6 +184,13 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Error checking user status:", e);
         }
 
+        // Require email verification for Email/Password signups
+        if (!user.emailVerified) {
+            alert("กรุณายืนยันอีเมลของคุณก่อนเข้าใช้งานระบบครับ! (ระบบได้ส่งลิงก์ยืนยันไปที่ " + user.email + " แล้ว หากไม่พบกรุณาตรวจสอบโฟลเดอร์ขยะครับ)");
+            await signOut(auth);
+            return;
+        }
+
         currentUser = user;
         setDoc(userRef, {
             email: user.email,
