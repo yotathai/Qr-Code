@@ -19,6 +19,29 @@ const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 let currentMode = 'shortlink'; // 'both', 'shortlink', 'qrcode'
+
+// Helper for user-friendly error messages
+function getAuthErrorMessage(errorCode) {
+    switch (errorCode) {
+        case 'auth/email-already-in-use':
+            return 'อีเมลนี้มีผู้ใช้งานแล้ว กรุณาเข้าสู่ระบบด้วยอีเมลนี้ หรือใช้อีเมลอื่นสมัครใหม่ครับ';
+        case 'auth/invalid-email':
+            return 'รูปแบบอีเมลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้งครับ';
+        case 'auth/weak-password':
+            return 'รหัสผ่านอ่อนเกินไป กรุณาตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษรครับ';
+        case 'auth/user-not-found':
+            return 'ไม่พบอีเมลนี้ในระบบ กรุณาสมัครสมาชิกก่อนครับ';
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+            return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้งครับ';
+        case 'auth/too-many-requests':
+            return 'คุณพยายามเข้าระบบผิดพลาดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่ครับ';
+        case 'auth/network-request-failed':
+            return 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้ กรุณาตรวจสอบสัญญาณครับ';
+        default:
+            return 'เกิดข้อผิดพลาดในการดำเนินการ กรุณาลองใหม่อีกครั้งครับ';
+    }
+}
 let selectedLogoDataUrl = null;
 
 function generateRandomString(length) {
@@ -460,7 +483,7 @@ if (submitLoginBtn) {
             })
             .catch((error) => {
                 console.error(error);
-                alert("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+                alert(getAuthErrorMessage(error.code));
             });
     });
 }
@@ -477,7 +500,7 @@ if (forgotPasswordLink) {
             })
             .catch((error) => {
                 console.error("Password Reset Error:", error);
-                alert("ไม่สามารถส่งอีเมลได้: " + error.message);
+                alert(getAuthErrorMessage(error.code));
             });
     });
 }
@@ -503,7 +526,7 @@ if (submitRegisterBtn) {
             })
             .catch((error) => {
                 console.error(error);
-                alert("สมัครสมาชิกไม่สำเร็จ: " + error.message);
+                alert(getAuthErrorMessage(error.code));
             });
     });
 }
