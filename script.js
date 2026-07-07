@@ -167,6 +167,7 @@ onAuthStateChanged(auth, async (user) => {
         }, { merge: true }).catch(err => console.error("Error saving user:", err));
         
         loginSection.classList.add('hidden');
+        if (emailAuthModal) emailAuthModal.classList.add('hidden');
         userProfile.classList.remove('hidden');
         userName.textContent = user.displayName || user.email.split('@')[0];
         userAvatar.src = user.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
