@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, limit, deleteDoc, doc, updateDoc, getCountFromServer, getAggregateFromServer, sum, setDoc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRcQzCZint9dAkzO73cy9EYgUS1pcjcvM",
@@ -38,6 +38,7 @@ const userName = document.getElementById('userName');
 const userAvatar = document.getElementById('userAvatar');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 const emailLoginBtn = document.getElementById('emailLoginBtn');
 const emailAuthModal = document.getElementById('emailAuthModal');
 const authEmail = document.getElementById('authEmail');
@@ -338,6 +339,53 @@ longUrlInput.addEventListener('input', (e) => {
 });
 
 // Login / Logout
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth).then(() => {
+            window.location.reload();
+        }).catch(error => {
+            console.error("Logout Error:", error);
+            alert("เกิดข้อผิดพลาดในการออกจากระบบ");
+        });
+    });
+}
+
+if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener('click', async () => {
+        if (!auth.currentUser) return;
+        if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีของคุณ? ข้อมูลลิงก์ทั้งหมดที่คุณเคยสร้างจะถูกลบทิ้งอย่างถาวรและไม่สามารถกู้คืนได้")) {
+            try {
+                const uid = auth.currentUser.uid;
+                
+                // 1. Delete all links from Firestore
+                const q = query(collection(db, "shortlinks"), where("uid", "==", uid));
+                const snapshot = await getDocs(q);
+                if (!snapshot.empty) {
+                    const batch = writeBatch(db);
+                    snapshot.forEach(d => batch.delete(d.ref));
+                    await batch.commit();
+                }
+                
+                // 2. Delete user doc from Firestore
+                await deleteDoc(doc(db, "users", uid));
+                
+                // 3. Delete auth account
+                await deleteUser(auth.currentUser);
+                
+                alert("ลบบัญชีและข้อมูลทั้งหมดเรียบร้อยแล้ว หวังว่าจะมีโอกาสได้รับใช้คุณอีกนะครับ!");
+                window.location.reload();
+            } catch (error) {
+                console.error("Error deleting account:", error);
+                if (error.code === 'auth/requires-recent-login') {
+                    alert("เพื่อความปลอดภัยในการลบบัญชี กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่อีกครั้ง ก่อนกดปุ่มลบครับ");
+                } else {
+                    alert("เกิดข้อผิดพลาดในการลบบัญชี: " + error.message);
+                }
+            }
+        }
+    });
+}
+
 if (loginBtn) {
     loginBtn.addEventListener('click', () => {
         signInWithPopup(auth, provider).catch(error => {
