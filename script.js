@@ -39,6 +39,7 @@ const userAvatar = document.getElementById('userAvatar');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+const deleteAllLinksBtn = document.getElementById('deleteAllLinksBtn');
 const emailLoginBtn = document.getElementById('emailLoginBtn');
 const emailAuthModal = document.getElementById('emailAuthModal');
 const authEmail = document.getElementById('authEmail');
@@ -347,6 +348,39 @@ if (logoutBtn) {
             console.error("Logout Error:", error);
             alert("เกิดข้อผิดพลาดในการออกจากระบบ");
         });
+    });
+}
+
+if (deleteAllLinksBtn) {
+    deleteAllLinksBtn.addEventListener('click', async () => {
+        if (!auth.currentUser) return;
+        
+        // Confirmation 1
+        if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบ 'ลิงก์ทั้งหมด' ที่คุณเคยสร้างไว้?")) {
+            // Confirmation 2
+            if (confirm("⚠️ ยืนยันครั้งที่ 2: ลิงก์และคิวอาร์โค้ดทั้งหมดที่ถูกลบไปแล้วจะไม่สามารถกู้คืนได้ และคนที่นำลิงก์ไปใช้งานจะไม่สามารถเข้าถึงได้อีก คุณต้องการลบจริงๆ ใช่ไหม?")) {
+                try {
+                    const uid = auth.currentUser.uid;
+                    const q = query(collection(db, "shortlinks"), where("uid", "==", uid));
+                    const snapshot = await getDocs(q);
+                    
+                    if (snapshot.empty) {
+                        alert("คุณยังไม่เคยสร้างลิงก์ใดๆ เลยครับ");
+                        return;
+                    }
+                    
+                    const batch = writeBatch(db);
+                    snapshot.forEach(d => batch.delete(d.ref));
+                    await batch.commit();
+                    
+                    alert(`ระบบได้ทำการลบลิงก์ทั้งหมด ${snapshot.size} รายการของคุณเรียบร้อยแล้วครับ!`);
+                    fetchMyLinks(); // Refresh the list
+                } catch (error) {
+                    console.error("Error deleting all links:", error);
+                    alert("เกิดข้อผิดพลาดในการลบลิงก์: " + error.message);
+                }
+            }
+        }
     });
 }
 
