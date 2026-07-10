@@ -35,7 +35,7 @@
     <div>
         <div class="loader"></div>
         <h2 id="statusMessage">กำลังตรวจสอบลิงก์...</h2>
-        <p>รอสักครู่ ระบบกำลังนำท่านไปยังปลายทาง</p>
+        <p id="fallbackText">รอสักครู่ ระบบกำลังนำท่านไปยังปลายทาง</p>
     </div>
 
     <script type="module">
@@ -98,7 +98,10 @@
                     }
 
                     statusMessage.textContent = "กำลังพาท่านไป...";
-                    window.location.replace(data.originalUrl);
+                    document.getElementById('fallbackText').innerHTML = `หากระบบไม่พาท่านไปอัตโนมัติ กรุณา <a href="${data.originalUrl}" style="color: #f97316; font-weight: bold;">คลิกที่นี่</a>`;
+                    
+                    // Use href instead of replace for better compatibility with FB/Line in-app browsers
+                    window.location.href = data.originalUrl;
                 } else {
                     statusMessage.textContent = "ไม่พบลิงก์นี้ในระบบ";
                     setTimeout(() => {
