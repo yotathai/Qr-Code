@@ -35,7 +35,9 @@
     <div>
         <div class="loader"></div>
         <h2 id="statusMessage">กำลังตรวจสอบลิงก์...</h2>
-        <p id="fallbackText">รอสักครู่ ระบบกำลังนำท่านไปยังปลายทาง</p>
+        <div id="fallbackText" style="margin-top: 15px;">
+            <p>รอสักครู่ ระบบกำลังนำท่านไปยังปลายทาง</p>
+        </div>
     </div>
 
     <script type="module">
@@ -98,7 +100,30 @@
                     }
 
                     statusMessage.textContent = "กำลังพาท่านไป...";
-                    document.getElementById('fallbackText').innerHTML = `หากระบบไม่พาท่านไปอัตโนมัติ กรุณา <a href="${data.originalUrl}" style="color: #f97316; font-weight: bold;">คลิกที่นี่</a>`;
+                    
+                    const isFacebookApp = function() {
+                        var ua = navigator.userAgent || navigator.vendor || window.opera;
+                        return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Line") > -1);
+                    }();
+
+                    let fallbackHTML = `
+                        <p style="margin-bottom: 15px; color: #4b5563;">หากระบบไม่เปลี่ยนหน้าอัตโนมัติ กรุณากดปุ่มด้านล่าง</p>
+                        <a href="${data.originalUrl}" style="display: inline-block; background-color: #f97316; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.2);">👉 เปิดหน้าเว็บ / ดาวน์โหลดไฟล์</a>
+                    `;
+
+                    if (isFacebookApp) {
+                        fallbackHTML += `<p style="margin-top: 20px; font-size: 0.85em; color: #ef4444; max-width: 300px; margin-left: auto; margin-right: auto;">
+                            ⚠️ หมายเหตุ: แอป Facebook/LINE อาจบล็อกการดาวน์โหลดไฟล์ แนะนำให้กดที่ <strong>จุด 3 จุด (...)</strong> แล้วเลือก <strong>'เปิดในเบราว์เซอร์' (Open in Browser)</strong>
+                        </p>`;
+                    }
+
+                    document.getElementById('fallbackText').innerHTML = fallbackHTML;
+                    
+                    // Hide loader after a short delay since it's ready
+                    setTimeout(() => {
+                        const loader = document.querySelector('.loader');
+                        if(loader) loader.style.display = 'none';
+                    }, 500);
                     
                     // Use href instead of replace for better compatibility with FB/Line in-app browsers
                     window.location.href = data.originalUrl;
