@@ -127,6 +127,7 @@ async function loadAdminDashboard() {
         // Render Components
         renderUserTable();
         renderRecentActivity();
+        renderAllLinksTable(); // Render all links table
         updateCharts(7); // Default to 7 days
         
     } catch (error) {
@@ -544,5 +545,158 @@ function renderModeChart(modesCount) {
                 legend: { position: 'bottom' }
             }
         }
+    });
+}
+
+// ==========================================
+// All Links Table & Filtering Logic
+// ==========================================
+const allLinksTableBody = document.getElementById('allLinksTableBody');
+const filterLinkBtns = document.querySelectorAll('.filter-link-btn');
+const filterStartDate = document.getElementById('filterStartDate');
+const filterEndDate = document.getElementById('filterEndDate');
+const btnApplyCustomDate = document.getElementById('btnApplyCustomDate');
+
+function renderAllLinksTable(startDate = null, endDate = null) {
+    if (!allLinksTableBody) return;
+    
+    allLinksTableBody.innerHTML = '';
+    
+    // Create a user dictionary for fast lookup
+    const userDict = {};
+    globalUsersData.forEach(u => {
+        userDict[u.id] = { name: u.displayName, email: u.email, photo: u.photoURL };
+    });
+    
+    let filteredLinks = globalLinksData;
+    
+    // Filter by date
+    if (startDate && endDate) {
+        // Set to start of startDate and end of endDate
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        
+        filteredLinks = globalLinksData.filter(link => {
+            const d = link.dateObj;
+            return d >= start && d <= end;
+        });
+    }
+    
+    if (filteredLinks.length === 0) {
+        allLinksTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">ไม่พบลิงก์ในช่วงเวลานี้</td></tr>';
+        return;
+    }
+    
+    // Sort descending by date
+    filteredLinks.sort((a, b) => b.dateObj - a.dateObj);
+    
+    filteredLinks.forEach(link => {
+        const d = link.dateObj;
+        const timeStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        
+        const user = userDict[link.uid] || { name: 'Unknown', email: '-' };
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-size: 0.85rem; color: #6b7280;">${timeStr}</td>
+            <td>
+                <div style="font-weight: 500; color: #111827; font-size: 0.85rem;">${user.name || 'ไม่มีชื่อ'}</div>
+                <div style="color: #6b7280; font-size: 0.75rem;">${user.email || ''}</div>
+            </td>
+            <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem;">
+                <a href="${link.originalUrl}" target="_blank" style="color: #6b7280;">${link.originalUrl}</a>
+            </td>
+            <td style="font-size: 0.85rem;">
+                <a href="https://th-go.link/${link.alias}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">/${link.alias}</a>
+            </td>
+            <td style="text-align: center; font-size: 0.9rem; font-weight: 500;">${link.clicks || 0}</td>
+            <td style="text-align: center;">
+                <button class="admin-btn btn-delete-single-link" data-id="${link.id}" style="color: #b91c1c; border-color: #fca5a5; background: #fef2f2; font-size: 0.75rem; padding: 4px 8px;">ลบ</button>
+            </td>
+        `;
+        allLinksTableBody.appendChild(tr);
+    });
+    
+    // Attach delete listeners
+    document.querySelectorAll('.btn-delete-single-link').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบลิงก์นี้อย่างถาวร?")) {
+                try {
+                    await deleteDoc(doc(db, "shortlinks", id));
+                    
+                    // Remove from global data so UI updates smoothly
+                    const idx = globalLinksData.findIndex(l => l.id === id);
+                    if (idx > -1) globalLinksData.splice(idx, 1);
+                    
+                    // Re-render
+                    renderAllLinksTable(startDate, endDate);
+                    
+                    // Re-calculate stats
+                    let totalLinks = globalLinksData.length;
+                    kpiTotalLinks.textContent = totalLinks.toLocaleString();
+                    alert("ลบลิงก์เรียบร้อยแล้ว");
+                } catch(err) {
+                    console.error("Error deleting link:", err);
+                    alert("เกิดข้อผิดพลาดในการลบลิงก์");
+                }
+            }
+        });
+    });
+}
+
+// Event listeners for date filters
+if (filterLinkBtns) {
+    filterLinkBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // UI toggle
+            filterLinkBtns.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Clear custom date inputs
+            if (filterStartDate) filterStartDate.value = '';
+            if (filterEndDate) filterEndDate.value = '';
+            
+            const range = e.target.getAttribute('data-range');
+            const today = new Date();
+            
+            if (range === 'all') {
+                renderAllLinksTable();
+            } else if (range === 'today') {
+                renderAllLinksTable(today, today);
+            } else if (range === 'yesterday') {
+                const y = new Date();
+                y.setDate(y.getDate() - 1);
+                renderAllLinksTable(y, y);
+            } else if (range === 'week') {
+                const w = new Date();
+                w.setDate(w.getDate() - 6);
+                renderAllLinksTable(w, today);
+            } else if (range === 'month') {
+                const m = new Date();
+                m.setDate(m.getDate() - 30);
+                renderAllLinksTable(m, today);
+            }
+        });
+    });
+}
+
+if (btnApplyCustomDate) {
+    btnApplyCustomDate.addEventListener('click', () => {
+        const start = filterStartDate.value;
+        const end = filterEndDate.value;
+        
+        if (!start || !end) {
+            alert('กรุณาระบุวันที่เริ่มต้นและสิ้นสุดให้ครบถ้วน');
+            return;
+        }
+        
+        // Remove active class from preset buttons
+        filterLinkBtns.forEach(b => b.classList.remove('active'));
+        
+        renderAllLinksTable(new Date(start), new Date(end));
     });
 }
